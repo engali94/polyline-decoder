@@ -2,35 +2,31 @@
 export const mapStyles = {
   osm: {
     name: "OpenStreetMap",
-    url: "https://api.maptiler.com/maps/openstreetmap/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
-  },
-  streets: {
-    name: "Streets",
-    url: "https://api.maptiler.com/maps/streets-v2/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
-  },
-  outdoor: {
-    name: "Outdoor",
-    url: "https://api.maptiler.com/maps/outdoor/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
-  },
-  basic: {
-    name: "Basic",
-    url: "https://api.maptiler.com/maps/basic-v2/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
-  },
-  bright: {
-    name: "Bright",
-    url: "https://api.maptiler.com/maps/bright/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
-  },
-  dark: {
-    name: "Dark",
-    url: "https://api.maptiler.com/maps/dataviz-dark/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+    url: "https://demotiles.maplibre.org/style.json"
   },
   positron: {
     name: "Positron",
-    url: "https://tiles.stadiamaps.com/styles/stamen_watercolor.json"
+    url: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+  },
+  dark: {
+    name: "Dark Matter",
+    url: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+  },
+  voyager: {
+    name: "Voyager",
+    url: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+  },
+  rastertiles: {
+    name: "Raster Tiles",
+    url: "https://demotiles.maplibre.org/style.json"
+  },
+  watercolor: {
+    name: "Watercolor",
+    url: "https://tiles.stadiamaps.com/styles/stamen_watercolor.json?api_key=undefined"
   },
   terrain: {
     name: "Terrain",
-    url: "https://api.maptiler.com/maps/topo-v2/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+    url: "https://demotiles.maplibre.org/terrain-style.json"
   }
 };
 
