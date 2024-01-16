@@ -1,11 +1,9 @@
+
 import React, { useRef, useEffect, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import * as maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapStyle, mapStyles } from '../utils/mapStyles';
 import { Settings } from 'lucide-react';
-
-// Temporary public token for development - in production this should be managed securely
-mapboxgl.accessToken = 'pk.eyJ1IjoiZXhhbXBsZXVzZXIiLCJhIjoiY2xnd3p4ZWxzMDM3aDNkcDkwdmRnbGZ2ZSJ9.Q9qSNxrXDTIHoUEd0P3FMA';
 
 interface MapProps {
   coordinates: [number, number][];
@@ -14,14 +12,14 @@ interface MapProps {
 
 const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [currentStyle, setCurrentStyle] = useState<MapStyle>('light');
+  const map = useRef<maplibregl.Map | null>(null);
+  const [currentStyle, setCurrentStyle] = useState<MapStyle>('osm');
   const [showStyleOptions, setShowStyleOptions] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    map.current = new mapboxgl.Map({
+    map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: mapStyles[currentStyle].url,
       center: [-74.5, 40],
@@ -29,8 +27,8 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
       attributionControl: false
     });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
+    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.current.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
     // Clean up on unmount
     return () => {
@@ -91,7 +89,10 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
 
         // Fit bounds to show the entire polyline
         if (coordinates.length > 1) {
-          const bounds = coordinates.reduce((bounds, coord) => bounds.extend(coord as [number, number]), new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+          const bounds = coordinates.reduce(
+            (bounds, coord) => bounds.extend(coord as [number, number]), 
+            new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
+          );
           
           map.current?.fitBounds(bounds, {
             padding: 50,
@@ -113,7 +114,7 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
 
   return (
     <div className="relative h-full w-full animate-fade-in">
-      <div ref={mapContainer} className="map-container" />
+      <div ref={mapContainer} className="map-container h-full w-full" />
       
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">

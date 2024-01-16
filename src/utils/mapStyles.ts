@@ -1,28 +1,36 @@
 
 export const mapStyles = {
-  light: {
-    name: "Light",
-    url: "mapbox://styles/mapbox/light-v11"
-  },
-  dark: {
-    name: "Dark",
-    url: "mapbox://styles/mapbox/dark-v11"
+  osm: {
+    name: "OpenStreetMap",
+    url: "https://api.maptiler.com/maps/openstreetmap/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
   },
   streets: {
     name: "Streets",
-    url: "mapbox://styles/mapbox/streets-v12"
+    url: "https://api.maptiler.com/maps/streets-v2/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
   },
-  outdoors: {
-    name: "Outdoors",
-    url: "mapbox://styles/mapbox/outdoors-v12"
+  outdoor: {
+    name: "Outdoor",
+    url: "https://api.maptiler.com/maps/outdoor/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
   },
-  satellite: {
-    name: "Satellite",
-    url: "mapbox://styles/mapbox/satellite-v9"
+  basic: {
+    name: "Basic",
+    url: "https://api.maptiler.com/maps/basic-v2/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
   },
-  satelliteStreets: {
-    name: "Satellite Streets",
-    url: "mapbox://styles/mapbox/satellite-streets-v12"
+  bright: {
+    name: "Bright",
+    url: "https://api.maptiler.com/maps/bright/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+  },
+  dark: {
+    name: "Dark",
+    url: "https://api.maptiler.com/maps/dataviz-dark/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+  },
+  positron: {
+    name: "Positron",
+    url: "https://tiles.stadiamaps.com/styles/stamen_watercolor.json"
+  },
+  terrain: {
+    name: "Terrain",
+    url: "https://api.maptiler.com/maps/topo-v2/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
   }
 };
 
