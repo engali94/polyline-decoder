@@ -6,12 +6,12 @@ import { Switch } from './ui/switch';
 import { 
   Split, 
   Layers, 
-  BadgeDiff, 
+  Diff, 
   Route, 
   AlignHorizontalDistributeCenter, 
   Flame, 
   BarChart2, 
-  Segment
+  Route as RouteIcon
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { decodePolyline, calculateDistance } from '../utils/polylineDecoder';
@@ -135,7 +135,7 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
                     <span className="hidden sm:inline">Side-by-Side</span>
                   </TabsTrigger>
                   <TabsTrigger value="diff" className="text-xs flex gap-1 items-center">
-                    <BadgeDiff className="h-3 w-3" />
+                    <Diff className="h-3 w-3" />
                     <span className="hidden sm:inline">Diff</span>
                   </TabsTrigger>
                   <TabsTrigger value="stats" className="text-xs flex gap-1 items-center">

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapStyle, mapStyles, loadCustomStyles, CustomMapStyle, saveCustomStyle } from '../utils/mapStyles';
-import { Settings, Plus, X, Split, Layers, BadgeDiff } from 'lucide-react';
+import { Settings, Plus, X, Split, Layers, Diff } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { 
@@ -56,7 +56,6 @@ const Map: React.FC<MapProps> = ({
   const secondMapContainer = useRef<HTMLDivElement>(null);
   const secondMap = useRef<maplibregl.Map | null>(null);
 
-  // Initialize style options by combining built-in and custom styles
   useEffect(() => {
     const builtInStyles = Object.entries(mapStyles).map(([id, style]) => ({
       id,
@@ -74,7 +73,6 @@ const Map: React.FC<MapProps> = ({
     setStyleOptions([...builtInStyles, ...customStyles]);
   }, []);
 
-  // Effect for comparison mode and type changes
   useEffect(() => {
     if (comparisonMode && comparisonType === 'sideBySide') {
       setSplitViewActive(true);
@@ -83,7 +81,6 @@ const Map: React.FC<MapProps> = ({
     }
   }, [comparisonMode, comparisonType]);
 
-  // Initialize primary map
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -101,7 +98,6 @@ const Map: React.FC<MapProps> = ({
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
     map.current.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
-    // Clean up on unmount
     return () => {
       if (map.current) {
         map.current.remove();
@@ -109,7 +105,6 @@ const Map: React.FC<MapProps> = ({
     };
   }, [styleOptions.length]);
 
-  // Initialize secondary map for side-by-side view
   useEffect(() => {
     if (!splitViewActive || !secondMapContainer.current) return;
 
@@ -126,7 +121,6 @@ const Map: React.FC<MapProps> = ({
 
     secondMap.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    // Sync maps movement
     const syncMaps = (sourceMap: maplibregl.Map, targetMap: maplibregl.Map) => {
       sourceMap.on('move', () => {
         if (targetMap.getCenter().toString() === sourceMap.getCenter().toString()) {
@@ -144,7 +138,6 @@ const Map: React.FC<MapProps> = ({
       syncMaps(secondMap.current, map.current);
     }
 
-    // Clean up on unmount
     return () => {
       if (secondMap.current) {
         secondMap.current.remove();
@@ -152,7 +145,6 @@ const Map: React.FC<MapProps> = ({
     };
   }, [splitViewActive, styleOptions.length]);
 
-  // Update map style when changed
   useEffect(() => {
     if (map.current && styleOptions.length > 0) {
       const currentStyle = styleOptions.find(style => style.id === currentStyleId);
@@ -182,7 +174,6 @@ const Map: React.FC<MapProps> = ({
     }
   }, [currentStyleId, styleOptions]);
 
-  // Add primary polyline to map
   useEffect(() => {
     if (!map.current || isLoading) return;
 
@@ -190,14 +181,12 @@ const Map: React.FC<MapProps> = ({
     const layerId = 'polyline-layer';
 
     const onMapLoad = () => {
-      // Remove existing source and layer if they exist
       if (map.current?.getSource(sourceId)) {
         map.current.removeLayer(layerId);
         map.current.removeSource(sourceId);
       }
 
       if (coordinates.length > 0) {
-        // Add source and layer
         map.current?.addSource(sourceId, {
           type: 'geojson',
           data: {
@@ -224,7 +213,6 @@ const Map: React.FC<MapProps> = ({
           }
         });
 
-        // Fit bounds to show the entire polyline
         if (coordinates.length > 1) {
           const bounds = coordinates.reduce(
             (bounds, coord) => bounds.extend(coord as [number, number]), 
@@ -240,31 +228,26 @@ const Map: React.FC<MapProps> = ({
       }
     };
 
-    // If the map is already loaded, update immediately
     if (map.current.loaded()) {
       onMapLoad();
     } else {
-      // Otherwise wait for the load event
       map.current.once('load', onMapLoad);
     }
   }, [coordinates, isLoading]);
 
-  // Add secondary polyline to primary map (for overlay mode)
   useEffect(() => {
     if (!map.current || isLoading || !comparisonMode || !secondaryCoordinates.length) return;
-    if (comparisonType === 'sideBySide' && splitViewActive) return; // Skip for side-by-side mode
+    if (comparisonType === 'sideBySide' && splitViewActive) return;
 
     const sourceId = 'secondary-polyline-source';
     const layerId = 'secondary-polyline-layer';
 
     const onMapLoad = () => {
-      // Remove existing source and layer if they exist
       if (map.current?.getSource(sourceId)) {
         map.current.removeLayer(layerId);
         map.current.removeSource(sourceId);
       }
 
-      // Add source and layer for secondary polyline
       map.current?.addSource(sourceId, {
         type: 'geojson',
         data: {
@@ -286,16 +269,13 @@ const Map: React.FC<MapProps> = ({
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#10b981', // Green for secondary polyline
+          'line-color': '#10b981',
           'line-width': 3,
-          'line-opacity': overlayOpacity / 100 // Apply opacity from props
+          'line-opacity': overlayOpacity / 100
         }
       });
 
-      // For diff mode, add divergence and intersection highlights
       if (comparisonType === 'diff') {
-        // Simplified implementation - in a real app, would need more complex algorithms
-        // to detect actual divergence and intersections between polylines
         if (showDivergence) {
           addDivergencePoints();
         }
@@ -307,22 +287,17 @@ const Map: React.FC<MapProps> = ({
     };
 
     const addDivergencePoints = () => {
-      // This is a simplified implementation - real implementation would need
-      // sophisticated algorithms to detect actual divergence points
-      
-      // Just sample a few points from each path for demo purposes
       const divergencePoints: [number, number][] = [];
       
       for (let i = 0; i < Math.min(coordinates.length, secondaryCoordinates.length); i += 10) {
         const primary = coordinates[i];
         const secondary = secondaryCoordinates[i];
         
-        // Simple distance check (not accurate for real-world usage)
         const dx = primary[0] - secondary[0];
         const dy = primary[1] - secondary[1];
         const distSquared = dx * dx + dy * dy;
         
-        if (distSquared > 0.0001) { // Arbitrary threshold
+        if (distSquared > 0.0001) {
           divergencePoints.push(primary);
         }
       }
@@ -349,7 +324,7 @@ const Map: React.FC<MapProps> = ({
           source: 'divergence-source',
           paint: {
             'circle-radius': 5,
-            'circle-color': '#ef4444', // Red for divergence
+            'circle-color': '#ef4444',
             'circle-opacity': 0.8
           }
         });
@@ -357,13 +332,8 @@ const Map: React.FC<MapProps> = ({
     };
     
     const addIntersectionPoints = () => {
-      // This is a simplified implementation - real implementation would need
-      // line intersection algorithms
-      
-      // Just add some dummy intersection points for demo
       const intersectionPoints: [number, number][] = [];
       
-      // Just pick a few random points as "intersections" for demo
       for (let i = 5; i < Math.min(coordinates.length, secondaryCoordinates.length); i += 15) {
         const primary = coordinates[i];
         intersectionPoints.push(primary);
@@ -391,22 +361,19 @@ const Map: React.FC<MapProps> = ({
           source: 'intersection-source',
           paint: {
             'circle-radius': 5,
-            'circle-color': '#f59e0b', // Amber for intersections
+            'circle-color': '#f59e0b',
             'circle-opacity': 0.8
           }
         });
       }
     };
 
-    // If the map is already loaded, update immediately
     if (map.current.loaded()) {
       onMapLoad();
     } else {
-      // Otherwise wait for the load event
       map.current.once('load', onMapLoad);
     }
 
-    // Cleanup
     return () => {
       if (map.current?.getSource(sourceId)) {
         map.current.removeLayer(layerId);
@@ -435,7 +402,6 @@ const Map: React.FC<MapProps> = ({
     splitViewActive
   ]);
 
-  // Add primary polyline to second map (for side-by-side view)
   useEffect(() => {
     if (!secondMap.current || isLoading || !splitViewActive) return;
 
@@ -443,14 +409,12 @@ const Map: React.FC<MapProps> = ({
     const layerId = 'second-primary-polyline-layer';
 
     const onMapLoad = () => {
-      // Remove existing source and layer if they exist
       if (secondMap.current?.getSource(sourceId)) {
         secondMap.current.removeLayer(layerId);
         secondMap.current.removeSource(sourceId);
       }
 
       if (secondaryCoordinates.length > 0) {
-        // Add source and layer for secondary polyline
         secondMap.current?.addSource(sourceId, {
           type: 'geojson',
           data: {
@@ -472,22 +436,19 @@ const Map: React.FC<MapProps> = ({
             'line-cap': 'round'
           },
           paint: {
-            'line-color': '#10b981', // Green for secondary polyline
+            'line-color': '#10b981',
             'line-width': 3
           }
         });
       }
     };
 
-    // If the map is already loaded, update immediately
     if (secondMap.current.loaded()) {
       onMapLoad();
     } else {
-      // Otherwise wait for the load event
       secondMap.current.once('load', onMapLoad);
     }
 
-    // Cleanup
     return () => {
       if (secondMap.current?.getSource(sourceId)) {
         secondMap.current.removeLayer(layerId);
@@ -496,7 +457,6 @@ const Map: React.FC<MapProps> = ({
     };
   }, [secondaryCoordinates, splitViewActive]);
 
-  // Handle adding a new custom style
   const handleAddCustomStyle = () => {
     if (!newStyleName.trim() || !newStyleUrl.trim()) {
       toast({
@@ -508,17 +468,14 @@ const Map: React.FC<MapProps> = ({
     }
 
     try {
-      // Generate a unique ID for the custom style
       const id = `custom-${Date.now()}`;
       const newStyle: CustomMapStyle = {
         name: newStyleName.trim(),
         url: newStyleUrl.trim()
       };
 
-      // Save to localStorage
       saveCustomStyle(id, newStyle);
 
-      // Update local state
       setStyleOptions(prev => [
         ...prev,
         { id, name: newStyle.name, url: newStyle.url, isCustom: true }
@@ -578,7 +535,7 @@ const Map: React.FC<MapProps> = ({
             className="p-1.5 rounded-md bg-secondary/70 text-secondary-foreground hover:bg-opacity-90 transition-colors"
             title="Difference Mode"
           >
-            <BadgeDiff className="h-4 w-4" />
+            <Diff className="h-4 w-4" />
           </button>
         </div>
       )}
@@ -632,7 +589,6 @@ const Map: React.FC<MapProps> = ({
         </div>
       </div>
 
-      {/* Dialog for adding custom styles */}
       <Dialog open={showCustomStyleDialog} onOpenChange={setShowCustomStyleDialog}>
         <DialogContent>
           <DialogHeader>
