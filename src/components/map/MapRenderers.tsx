@@ -1,6 +1,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
+import { Split } from 'lucide-react';
 import { StyleOption } from './StyleSelector';
 
 interface MapRenderersProps {
