@@ -1,9 +1,8 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapStyle, mapStyles, loadCustomStyles, CustomMapStyle, saveCustomStyle } from '../utils/mapStyles';
-import { Settings, Plus, X } from 'lucide-react';
+import { Settings, Plus, X, Split, Layers, BadgeDiff } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { 
@@ -19,7 +18,13 @@ import { toast } from './ui/use-toast';
 
 interface MapProps {
   coordinates: [number, number][];
+  secondaryCoordinates?: [number, number][];
   isLoading?: boolean;
+  comparisonMode?: boolean;
+  comparisonType?: 'overlay' | 'sideBySide' | 'diff';
+  overlayOpacity?: number;
+  showDivergence?: boolean;
+  showIntersections?: boolean;
 }
 
 type StyleOption = {
@@ -29,7 +34,16 @@ type StyleOption = {
   isCustom?: boolean;
 };
 
-const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
+const Map: React.FC<MapProps> = ({ 
+  coordinates, 
+  secondaryCoordinates = [], 
+  isLoading = false,
+  comparisonMode = false,
+  comparisonType = 'overlay',
+  overlayOpacity = 50,
+  showDivergence = true,
+  showIntersections = true
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [styleOptions, setStyleOptions] = useState<StyleOption[]>([]);
@@ -38,6 +52,9 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
   const [showCustomStyleDialog, setShowCustomStyleDialog] = useState(false);
   const [newStyleName, setNewStyleName] = useState('');
   const [newStyleUrl, setNewStyleUrl] = useState('');
+  const [splitViewActive, setSplitViewActive] = useState(false);
+  const secondMapContainer = useRef<HTMLDivElement>(null);
+  const secondMap = useRef<maplibregl.Map | null>(null);
 
   // Initialize style options by combining built-in and custom styles
   useEffect(() => {
@@ -57,7 +74,16 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
     setStyleOptions([...builtInStyles, ...customStyles]);
   }, []);
 
-  // Initialize the map
+  // Effect for comparison mode and type changes
+  useEffect(() => {
+    if (comparisonMode && comparisonType === 'sideBySide') {
+      setSplitViewActive(true);
+    } else {
+      setSplitViewActive(false);
+    }
+  }, [comparisonMode, comparisonType]);
+
+  // Initialize primary map
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -83,6 +109,49 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
     };
   }, [styleOptions.length]);
 
+  // Initialize secondary map for side-by-side view
+  useEffect(() => {
+    if (!splitViewActive || !secondMapContainer.current) return;
+
+    const currentStyle = styleOptions.find(style => style.id === currentStyleId);
+    if (!currentStyle) return;
+
+    secondMap.current = new maplibregl.Map({
+      container: secondMapContainer.current,
+      style: currentStyle.url,
+      center: [-74.5, 40],
+      zoom: 2,
+      attributionControl: false
+    });
+
+    secondMap.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+    // Sync maps movement
+    const syncMaps = (sourceMap: maplibregl.Map, targetMap: maplibregl.Map) => {
+      sourceMap.on('move', () => {
+        if (targetMap.getCenter().toString() === sourceMap.getCenter().toString()) {
+          return;
+        }
+        targetMap.setCenter(sourceMap.getCenter());
+        targetMap.setZoom(sourceMap.getZoom());
+        targetMap.setBearing(sourceMap.getBearing());
+        targetMap.setPitch(sourceMap.getPitch());
+      });
+    };
+
+    if (map.current) {
+      syncMaps(map.current, secondMap.current);
+      syncMaps(secondMap.current, map.current);
+    }
+
+    // Clean up on unmount
+    return () => {
+      if (secondMap.current) {
+        secondMap.current.remove();
+      }
+    };
+  }, [splitViewActive, styleOptions.length]);
+
   // Update map style when changed
   useEffect(() => {
     if (map.current && styleOptions.length > 0) {
@@ -100,9 +169,20 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
         }
       }
     }
+
+    if (secondMap.current && styleOptions.length > 0) {
+      const currentStyle = styleOptions.find(style => style.id === currentStyleId);
+      if (currentStyle) {
+        try {
+          secondMap.current.setStyle(currentStyle.url);
+        } catch (error) {
+          console.error('Error setting map style for second map:', error);
+        }
+      }
+    }
   }, [currentStyleId, styleOptions]);
 
-  // Update the polyline on the map when coordinates change
+  // Add primary polyline to map
   useEffect(() => {
     if (!map.current || isLoading) return;
 
@@ -169,6 +249,253 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
     }
   }, [coordinates, isLoading]);
 
+  // Add secondary polyline to primary map (for overlay mode)
+  useEffect(() => {
+    if (!map.current || isLoading || !comparisonMode || !secondaryCoordinates.length) return;
+    if (comparisonType === 'sideBySide' && splitViewActive) return; // Skip for side-by-side mode
+
+    const sourceId = 'secondary-polyline-source';
+    const layerId = 'secondary-polyline-layer';
+
+    const onMapLoad = () => {
+      // Remove existing source and layer if they exist
+      if (map.current?.getSource(sourceId)) {
+        map.current.removeLayer(layerId);
+        map.current.removeSource(sourceId);
+      }
+
+      // Add source and layer for secondary polyline
+      map.current?.addSource(sourceId, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: secondaryCoordinates
+          }
+        }
+      });
+
+      map.current?.addLayer({
+        id: layerId,
+        type: 'line',
+        source: sourceId,
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#10b981', // Green for secondary polyline
+          'line-width': 3,
+          'line-opacity': overlayOpacity / 100 // Apply opacity from props
+        }
+      });
+
+      // For diff mode, add divergence and intersection highlights
+      if (comparisonType === 'diff') {
+        // Simplified implementation - in a real app, would need more complex algorithms
+        // to detect actual divergence and intersections between polylines
+        if (showDivergence) {
+          addDivergencePoints();
+        }
+
+        if (showIntersections) {
+          addIntersectionPoints();
+        }
+      }
+    };
+
+    const addDivergencePoints = () => {
+      // This is a simplified implementation - real implementation would need
+      // sophisticated algorithms to detect actual divergence points
+      
+      // Just sample a few points from each path for demo purposes
+      const divergencePoints: [number, number][] = [];
+      
+      for (let i = 0; i < Math.min(coordinates.length, secondaryCoordinates.length); i += 10) {
+        const primary = coordinates[i];
+        const secondary = secondaryCoordinates[i];
+        
+        // Simple distance check (not accurate for real-world usage)
+        const dx = primary[0] - secondary[0];
+        const dy = primary[1] - secondary[1];
+        const distSquared = dx * dx + dy * dy;
+        
+        if (distSquared > 0.0001) { // Arbitrary threshold
+          divergencePoints.push(primary);
+        }
+      }
+      
+      if (divergencePoints.length > 0) {
+        map.current?.addSource('divergence-source', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: divergencePoints.map(point => ({
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'Point',
+                coordinates: point
+              }
+            }))
+          }
+        });
+        
+        map.current?.addLayer({
+          id: 'divergence-layer',
+          type: 'circle',
+          source: 'divergence-source',
+          paint: {
+            'circle-radius': 5,
+            'circle-color': '#ef4444', // Red for divergence
+            'circle-opacity': 0.8
+          }
+        });
+      }
+    };
+    
+    const addIntersectionPoints = () => {
+      // This is a simplified implementation - real implementation would need
+      // line intersection algorithms
+      
+      // Just add some dummy intersection points for demo
+      const intersectionPoints: [number, number][] = [];
+      
+      // Just pick a few random points as "intersections" for demo
+      for (let i = 5; i < Math.min(coordinates.length, secondaryCoordinates.length); i += 15) {
+        const primary = coordinates[i];
+        intersectionPoints.push(primary);
+      }
+      
+      if (intersectionPoints.length > 0) {
+        map.current?.addSource('intersection-source', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: intersectionPoints.map(point => ({
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'Point',
+                coordinates: point
+              }
+            }))
+          }
+        });
+        
+        map.current?.addLayer({
+          id: 'intersection-layer',
+          type: 'circle',
+          source: 'intersection-source',
+          paint: {
+            'circle-radius': 5,
+            'circle-color': '#f59e0b', // Amber for intersections
+            'circle-opacity': 0.8
+          }
+        });
+      }
+    };
+
+    // If the map is already loaded, update immediately
+    if (map.current.loaded()) {
+      onMapLoad();
+    } else {
+      // Otherwise wait for the load event
+      map.current.once('load', onMapLoad);
+    }
+
+    // Cleanup
+    return () => {
+      if (map.current?.getSource(sourceId)) {
+        map.current.removeLayer(layerId);
+        map.current.removeSource(sourceId);
+      }
+
+      if (comparisonType === 'diff') {
+        if (map.current?.getSource('divergence-source')) {
+          map.current.removeLayer('divergence-layer');
+          map.current.removeSource('divergence-source');
+        }
+        
+        if (map.current?.getSource('intersection-source')) {
+          map.current.removeLayer('intersection-layer');
+          map.current.removeSource('intersection-source');
+        }
+      }
+    };
+  }, [
+    secondaryCoordinates, 
+    comparisonMode, 
+    comparisonType, 
+    overlayOpacity, 
+    showDivergence, 
+    showIntersections, 
+    splitViewActive
+  ]);
+
+  // Add primary polyline to second map (for side-by-side view)
+  useEffect(() => {
+    if (!secondMap.current || isLoading || !splitViewActive) return;
+
+    const sourceId = 'second-primary-polyline-source';
+    const layerId = 'second-primary-polyline-layer';
+
+    const onMapLoad = () => {
+      // Remove existing source and layer if they exist
+      if (secondMap.current?.getSource(sourceId)) {
+        secondMap.current.removeLayer(layerId);
+        secondMap.current.removeSource(sourceId);
+      }
+
+      if (secondaryCoordinates.length > 0) {
+        // Add source and layer for secondary polyline
+        secondMap.current?.addSource(sourceId, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: secondaryCoordinates
+            }
+          }
+        });
+
+        secondMap.current?.addLayer({
+          id: layerId,
+          type: 'line',
+          source: sourceId,
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#10b981', // Green for secondary polyline
+            'line-width': 3
+          }
+        });
+      }
+    };
+
+    // If the map is already loaded, update immediately
+    if (secondMap.current.loaded()) {
+      onMapLoad();
+    } else {
+      // Otherwise wait for the load event
+      secondMap.current.once('load', onMapLoad);
+    }
+
+    // Cleanup
+    return () => {
+      if (secondMap.current?.getSource(sourceId)) {
+        secondMap.current.removeLayer(layerId);
+        secondMap.current.removeSource(sourceId);
+      }
+    };
+  }, [secondaryCoordinates, splitViewActive]);
+
   // Handle adding a new custom style
   const handleAddCustomStyle = () => {
     if (!newStyleName.trim() || !newStyleUrl.trim()) {
@@ -217,7 +544,44 @@ const Map: React.FC<MapProps> = ({ coordinates, isLoading = false }) => {
 
   return (
     <div className="relative h-full w-full animate-fade-in">
-      <div ref={mapContainer} className="map-container h-full w-full" />
+      <div className={`h-full w-full ${splitViewActive ? 'hidden md:block md:w-1/2 md:pr-1' : ''}`}>
+        <div ref={mapContainer} className="map-container h-full w-full" />
+      </div>
+      
+      {splitViewActive && (
+        <div className="h-full md:absolute md:right-0 md:top-0 md:w-1/2 md:pl-1">
+          <div ref={secondMapContainer} className="map-container h-full w-full" />
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+            <Split className="h-6 w-6 text-primary-foreground opacity-70" />
+          </div>
+        </div>
+      )}
+      
+      {comparisonMode && (
+        <div className="absolute top-4 left-4 z-10 glass rounded-lg p-2 flex space-x-2">
+          <button 
+            onClick={() => setSplitViewActive(false)}
+            className={`p-1.5 rounded-md ${!splitViewActive ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-secondary-foreground'} hover:bg-opacity-90 transition-colors`}
+            title="Overlay Mode"
+          >
+            <Layers className="h-4 w-4" />
+          </button>
+          <button 
+            onClick={() => setSplitViewActive(true)}
+            className={`p-1.5 rounded-md ${splitViewActive ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-secondary-foreground'} hover:bg-opacity-90 transition-colors`}
+            title="Side-by-Side Mode"
+          >
+            <Split className="h-4 w-4" />
+          </button>
+          <button 
+            onClick={() => {}}
+            className="p-1.5 rounded-md bg-secondary/70 text-secondary-foreground hover:bg-opacity-90 transition-colors"
+            title="Difference Mode"
+          >
+            <BadgeDiff className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
