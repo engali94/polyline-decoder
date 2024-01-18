@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Slider } from './ui/slider';
@@ -17,6 +16,8 @@ import { Button } from './ui/button';
 import { decodePolyline, calculateDistance } from '../utils/polylineDecoder';
 import { ChartContainer, ChartTooltipContent, ChartTooltip } from './ui/chart';
 import { Area, AreaChart, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+
+type ComparisonViewType = 'overlay' | 'sideBySide' | 'diff' | 'stats';
 
 interface PolylineComparisonProps {
   primaryPolyline: string;
@@ -52,18 +53,16 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
   setShowIntersections = () => {}
 }) => {
   const [alignmentThreshold, setAlignmentThreshold] = useState(20);
+  const [activeTab, setActiveTab] = useState<ComparisonViewType>(comparisonType);
 
-  // Decoded coordinates for stats
   const primaryCoordinates = primaryPolyline ? decodePolyline(primaryPolyline) : [];
   const secondaryCoordinates = secondaryPolyline ? decodePolyline(secondaryPolyline) : [];
 
-  // Calculate basic stats
   const primaryDistance = calculateDistance(primaryCoordinates);
   const secondaryDistance = calculateDistance(secondaryCoordinates);
   const distanceDiff = Math.abs(primaryDistance - secondaryDistance);
   const pointsDiff = Math.abs(primaryCoordinates.length - secondaryCoordinates.length);
   
-  // Generate sample chart data (in a real app, this would be actual elevation or speed data)
   const generateChartData = () => {
     if (!primaryCoordinates.length && !secondaryCoordinates.length) return [];
     
@@ -72,7 +71,6 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
       : secondaryCoordinates;
     
     return longerArray.map((_, i) => {
-      // Mock elevation data (would be real data in production)
       const primary = primaryCoordinates[i] 
         ? Math.sin(i * 0.2) * 50 + 100 + Math.random() * 10 
         : null;
@@ -106,14 +104,11 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
   };
 
   const handleTabChange = (value: string) => {
-    if (value === 'overlay') {
-      setComparisonType('overlay');
-    } else if (value === 'sideBySide') {
-      setComparisonType('sideBySide');
-    } else if (value === 'diff') {
-      setComparisonType('diff');
+    setActiveTab(value as ComparisonViewType);
+    
+    if (value === 'overlay' || value === 'sideBySide' || value === 'diff') {
+      setComparisonType(value as 'overlay' | 'sideBySide' | 'diff');
     }
-    // Don't change comparison type for 'stats' tab
   };
 
   return (
@@ -150,7 +145,7 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
 
           {secondaryPolyline && (
             <>
-              <Tabs value={comparisonType === 'stats' ? 'stats' : comparisonType} onValueChange={handleTabChange} className="w-full">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid grid-cols-4 mb-2 w-full bg-muted/70">
                   <TabsTrigger value="overlay" className="text-xs flex gap-1 items-center">
                     <Layers className="h-3 w-3" />
