@@ -4,6 +4,7 @@ import { Layers, Split, Diff } from 'lucide-react';
 
 interface MapControlsProps {
   comparisonMode: boolean;
+  comparisonType: 'overlay' | 'sideBySide' | 'diff';
   splitViewActive: boolean;
   setSplitViewActive: (active: boolean) => void;
   setComparisonType: (type: 'overlay' | 'sideBySide' | 'diff') => void;
@@ -11,6 +12,7 @@ interface MapControlsProps {
 
 const MapControls: React.FC<MapControlsProps> = ({
   comparisonMode,
+  comparisonType,
   splitViewActive,
   setSplitViewActive,
   setComparisonType
@@ -24,7 +26,7 @@ const MapControls: React.FC<MapControlsProps> = ({
           setSplitViewActive(false);
           setComparisonType('overlay');
         }}
-        className={`p-1.5 rounded-md ${!splitViewActive ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-secondary-foreground'} hover:bg-opacity-90 transition-colors`}
+        className={`p-1.5 rounded-md ${comparisonType === 'overlay' ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-secondary-foreground'} hover:bg-opacity-90 transition-colors`}
         title="Overlay Mode"
       >
         <Layers className="h-4 w-4" />
@@ -34,7 +36,7 @@ const MapControls: React.FC<MapControlsProps> = ({
           setSplitViewActive(true);
           setComparisonType('sideBySide');
         }}
-        className={`p-1.5 rounded-md ${splitViewActive ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-secondary-foreground'} hover:bg-opacity-90 transition-colors`}
+        className={`p-1.5 rounded-md ${comparisonType === 'sideBySide' ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-secondary-foreground'} hover:bg-opacity-90 transition-colors`}
         title="Side-by-Side Mode"
       >
         <Split className="h-4 w-4" />
@@ -44,7 +46,7 @@ const MapControls: React.FC<MapControlsProps> = ({
           setSplitViewActive(false);
           setComparisonType('diff');
         }}
-        className="p-1.5 rounded-md bg-secondary/70 text-secondary-foreground hover:bg-opacity-90 transition-colors"
+        className={`p-1.5 rounded-md ${comparisonType === 'diff' ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-secondary-foreground'} hover:bg-opacity-90 transition-colors`}
         title="Difference Mode"
       >
         <Diff className="h-4 w-4" />

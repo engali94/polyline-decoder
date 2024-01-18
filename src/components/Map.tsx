@@ -1,9 +1,7 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { mapStyles, loadCustomStyles } from '../utils/mapStyles';
-import { Split } from 'lucide-react';
 import MapControls from './map/MapControls';
 import StyleSelector, { StyleOption } from './map/StyleSelector';
 import MapRenderers from './map/MapRenderers';
@@ -40,8 +38,8 @@ const Map: React.FC<MapProps> = ({
   const [styleOptions, setStyleOptions] = useState<StyleOption[]>([]);
   const [currentStyleId, setCurrentStyleId] = useState<string>('osm');
   const [splitViewActive, setSplitViewActive] = useState(false);
+  const [localComparisonType, setLocalComparisonType] = useState<'overlay' | 'sideBySide' | 'diff'>(comparisonType);
 
-  // Load map styles (built-in + custom)
   useEffect(() => {
     const builtInStyles = Object.entries(mapStyles).map(([id, style]) => ({
       id,
@@ -59,16 +57,18 @@ const Map: React.FC<MapProps> = ({
     setStyleOptions([...builtInStyles, ...customStyles]);
   }, []);
 
-  // Handle comparison mode changes
   useEffect(() => {
-    if (comparisonMode && comparisonType === 'sideBySide') {
+    setLocalComparisonType(comparisonType);
+  }, [comparisonType]);
+
+  useEffect(() => {
+    if (comparisonMode && localComparisonType === 'sideBySide') {
       setSplitViewActive(true);
     } else {
       setSplitViewActive(false);
     }
-  }, [comparisonMode, comparisonType]);
+  }, [comparisonMode, localComparisonType]);
 
-  // Update map styles when style selection changes
   useEffect(() => {
     if (map.current && styleOptions.length > 0) {
       const currentStyle = styleOptions.find(style => style.id === currentStyleId);
@@ -93,7 +93,6 @@ const Map: React.FC<MapProps> = ({
     }
   }, [currentStyleId, styleOptions]);
 
-  // Add primary polyline to map
   useEffect(() => {
     if (!map.current || isLoading) return;
 
@@ -108,17 +107,19 @@ const Map: React.FC<MapProps> = ({
     }
   }, [coordinates, isLoading]);
 
-  // Add secondary polyline for comparison
   useEffect(() => {
     if (!map.current || isLoading || !comparisonMode || !secondaryCoordinates.length) return;
-    if (comparisonType === 'sideBySide' && splitViewActive) return;
+    if (localComparisonType === 'sideBySide' && splitViewActive) return;
 
     const onMapLoad = () => {
-      addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
-
-      if (comparisonType === 'diff') {
+      cleanupMapLayers(map.current, localComparisonType);
+      
+      if (localComparisonType === 'overlay') {
+        addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
+      } else if (localComparisonType === 'diff') {
+        addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
         addDifferentialAnalysis(
-          map.current!, 
+          map.current!,
           coordinates, 
           secondaryCoordinates, 
           showDivergence, 
@@ -134,12 +135,14 @@ const Map: React.FC<MapProps> = ({
     }
 
     return () => {
-      cleanupMapLayers(map.current, comparisonType);
+      if (map.current) {
+        cleanupMapLayers(map.current, localComparisonType);
+      }
     };
   }, [
     secondaryCoordinates, 
     comparisonMode, 
-    comparisonType, 
+    localComparisonType, 
     overlayOpacity, 
     showDivergence, 
     showIntersections, 
@@ -147,7 +150,6 @@ const Map: React.FC<MapProps> = ({
     coordinates
   ]);
 
-  // Add secondary polyline to second map in split view
   useEffect(() => {
     if (!secondMap.current || isLoading || !splitViewActive) return;
 
@@ -210,7 +212,7 @@ const Map: React.FC<MapProps> = ({
         secondaryCoordinates={secondaryCoordinates}
         isLoading={isLoading}
         comparisonMode={comparisonMode}
-        comparisonType={comparisonType}
+        comparisonType={localComparisonType}
         overlayOpacity={overlayOpacity}
         showDivergence={showDivergence}
         showIntersections={showIntersections}
@@ -223,9 +225,10 @@ const Map: React.FC<MapProps> = ({
       
       <MapControls
         comparisonMode={comparisonMode}
+        comparisonType={localComparisonType}
         splitViewActive={splitViewActive}
         setSplitViewActive={setSplitViewActive}
-        setComparisonType={(type) => {}}  // This is a placeholder as the prop is handled at a higher level
+        setComparisonType={setLocalComparisonType}
       />
       
       <StyleSelector

@@ -65,6 +65,10 @@ const Index = () => {
   const handleClear = () => {
     setPolyline('');
   };
+
+  const handleComparisonTypeChange = (type: 'overlay' | 'sideBySide' | 'diff') => {
+    setComparisonType(type);
+  };
   
   return (
     <div className="flex flex-col h-screen p-4 md:p-6 max-w-7xl mx-auto">
@@ -96,6 +100,16 @@ const Index = () => {
             setPrimaryPolyline={setPolyline}
             comparisonMode={comparisonMode}
             setComparisonMode={setComparisonMode}
+            secondaryPolyline={secondaryPolyline}
+            setSecondaryPolyline={setSecondaryPolyline}
+            comparisonType={comparisonType}
+            setComparisonType={handleComparisonTypeChange}
+            overlayOpacity={overlayOpacity}
+            setOverlayOpacity={setOverlayOpacity}
+            showDivergence={showDivergence}
+            setShowDivergence={setShowDivergence}
+            showIntersections={showIntersections}
+            setShowIntersections={setShowIntersections}
           />
           
           <Statistics coordinates={coordinates} distance={distance} />

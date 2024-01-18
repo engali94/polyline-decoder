@@ -6,55 +6,56 @@ export const addPrimaryPolyline = (
   coordinates: [number, number][],
   isLoading: boolean
 ): void => {
-  if (isLoading) return;
+  if (isLoading || !coordinates.length) return;
 
   const sourceId = 'polyline-source';
   const layerId = 'polyline-layer';
 
+  // Remove existing source and layer if they exist
   if (map.getSource(sourceId)) {
     map.removeLayer(layerId);
     map.removeSource(sourceId);
   }
 
-  if (coordinates.length > 0) {
-    map.addSource(sourceId, {
-      type: 'geojson',
-      data: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: coordinates
-        }
+  // Add the new source and layer
+  map.addSource(sourceId, {
+    type: 'geojson',
+    data: {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: coordinates
       }
-    });
-
-    map.addLayer({
-      id: layerId,
-      type: 'line',
-      source: sourceId,
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-      },
-      paint: {
-        'line-color': '#3b82f6',
-        'line-width': 3
-      }
-    });
-
-    if (coordinates.length > 1) {
-      const bounds = coordinates.reduce(
-        (bounds, coord) => bounds.extend(coord as [number, number]), 
-        new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
-      );
-      
-      map.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 15,
-        duration: 1000
-      });
     }
+  });
+
+  map.addLayer({
+    id: layerId,
+    type: 'line',
+    source: sourceId,
+    layout: {
+      'line-join': 'round',
+      'line-cap': 'round'
+    },
+    paint: {
+      'line-color': '#3b82f6',
+      'line-width': 3
+    }
+  });
+
+  // Fit the map to the bounds of the polyline
+  if (coordinates.length > 1) {
+    const bounds = coordinates.reduce(
+      (bounds, coord) => bounds.extend(coord as [number, number]), 
+      new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
+    );
+    
+    map.fitBounds(bounds, {
+      padding: 50,
+      maxZoom: 15,
+      duration: 1000
+    });
   }
 };
 
@@ -63,14 +64,18 @@ export const addSecondaryPolyline = (
   secondaryCoordinates: [number, number][],
   overlayOpacity: number
 ): void => {
+  if (!secondaryCoordinates.length) return;
+
   const sourceId = 'secondary-polyline-source';
   const layerId = 'secondary-polyline-layer';
 
+  // Remove existing source and layer if they exist
   if (map.getSource(sourceId)) {
     map.removeLayer(layerId);
     map.removeSource(sourceId);
   }
 
+  // Add the new source and layer
   map.addSource(sourceId, {
     type: 'geojson',
     data: {
@@ -104,8 +109,11 @@ export const addDivergencePoints = (
   coordinates: [number, number][],
   secondaryCoordinates: [number, number][]
 ): void => {
+  if (coordinates.length === 0 || secondaryCoordinates.length === 0) return;
+
   const divergencePoints: [number, number][] = [];
   
+  // Find points that diverge significantly between the two paths
   for (let i = 0; i < Math.min(coordinates.length, secondaryCoordinates.length); i += 10) {
     const primary = coordinates[i];
     const secondary = secondaryCoordinates[i];
@@ -114,12 +122,20 @@ export const addDivergencePoints = (
     const dy = primary[1] - secondary[1];
     const distSquared = dx * dx + dy * dy;
     
+    // Add points where the divergence is significant
     if (distSquared > 0.0001) {
       divergencePoints.push(primary);
     }
   }
   
+  // Remove existing layer if it exists
+  if (map.getSource('divergence-source')) {
+    map.removeLayer('divergence-layer');
+    map.removeSource('divergence-source');
+  }
+  
   if (divergencePoints.length > 0) {
+    // Add new source and layer for divergence points
     map.addSource('divergence-source', {
       type: 'geojson',
       data: {
@@ -152,14 +168,23 @@ export const addIntersectionPoints = (
   map: maplibregl.Map,
   coordinates: [number, number][]
 ): void => {
+  if (coordinates.length === 0) return;
+
+  // Sample points along the path to highlight as intersections
   const intersectionPoints: [number, number][] = [];
   
   for (let i = 5; i < coordinates.length; i += 15) {
-    const primary = coordinates[i];
-    intersectionPoints.push(primary);
+    intersectionPoints.push(coordinates[i]);
+  }
+  
+  // Remove existing layer if it exists
+  if (map.getSource('intersection-source')) {
+    map.removeLayer('intersection-layer');
+    map.removeSource('intersection-source');
   }
   
   if (intersectionPoints.length > 0) {
+    // Add new source and layer for intersection points
     map.addSource('intersection-source', {
       type: 'geojson',
       data: {
@@ -195,6 +220,16 @@ export const addDifferentialAnalysis = (
   showDivergence: boolean,
   showIntersections: boolean
 ): void => {
+  console.log("Adding differential analysis", { 
+    coordinates: coordinates.length, 
+    secondaryCoordinates: secondaryCoordinates.length,
+    showDivergence,
+    showIntersections
+  });
+
+  // Clean up existing layers first
+  cleanupDiffLayers(map);
+
   if (showDivergence) {
     addDivergencePoints(map, coordinates, secondaryCoordinates);
   }
@@ -204,29 +239,35 @@ export const addDifferentialAnalysis = (
   }
 };
 
+export const cleanupDiffLayers = (map: maplibregl.Map): void => {
+  if (map.getSource('divergence-source')) {
+    map.removeLayer('divergence-layer');
+    map.removeSource('divergence-source');
+  }
+  
+  if (map.getSource('intersection-source')) {
+    map.removeLayer('intersection-layer');
+    map.removeSource('intersection-source');
+  }
+};
+
 export const cleanupMapLayers = (
   map: maplibregl.Map | null,
   comparisonType: string
 ): void => {
   if (!map) return;
   
-  const sourceId = 'secondary-polyline-source';
-  const layerId = 'secondary-polyline-layer';
+  try {
+    const sourceId = 'secondary-polyline-source';
+    const layerId = 'secondary-polyline-layer';
 
-  if (map.getSource(sourceId)) {
-    map.removeLayer(layerId);
-    map.removeSource(sourceId);
-  }
+    if (map.getSource(sourceId)) {
+      map.removeLayer(layerId);
+      map.removeSource(sourceId);
+    }
 
-  if (comparisonType === 'diff') {
-    if (map.getSource('divergence-source')) {
-      map.removeLayer('divergence-layer');
-      map.removeSource('divergence-source');
-    }
-    
-    if (map.getSource('intersection-source')) {
-      map.removeLayer('intersection-layer');
-      map.removeSource('intersection-source');
-    }
+    cleanupDiffLayers(map);
+  } catch (error) {
+    console.error("Error cleaning up map layers:", error);
   }
 };

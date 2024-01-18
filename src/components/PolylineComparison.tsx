@@ -23,19 +23,34 @@ interface PolylineComparisonProps {
   setPrimaryPolyline: (value: string) => void;
   comparisonMode: boolean;
   setComparisonMode: (value: boolean) => void;
+  secondaryPolyline?: string;
+  setSecondaryPolyline?: (value: string) => void;
+  comparisonType?: 'overlay' | 'sideBySide' | 'diff';
+  setComparisonType?: (type: 'overlay' | 'sideBySide' | 'diff') => void;
+  overlayOpacity?: number;
+  setOverlayOpacity?: (value: number) => void;
+  showDivergence?: boolean;
+  setShowDivergence?: (value: boolean) => void;
+  showIntersections?: boolean;
+  setShowIntersections?: (value: boolean) => void;
 }
 
 const PolylineComparison: React.FC<PolylineComparisonProps> = ({
   primaryPolyline,
   setPrimaryPolyline,
   comparisonMode,
-  setComparisonMode
+  setComparisonMode,
+  secondaryPolyline = '',
+  setSecondaryPolyline = () => {},
+  comparisonType = 'overlay',
+  setComparisonType = () => {},
+  overlayOpacity = 50,
+  setOverlayOpacity = () => {},
+  showDivergence = true,
+  setShowDivergence = () => {},
+  showIntersections = true,
+  setShowIntersections = () => {}
 }) => {
-  const [secondaryPolyline, setSecondaryPolyline] = useState('');
-  const [comparisonTab, setComparisonTab] = useState('overlay');
-  const [overlayOpacity, setOverlayOpacity] = useState(50);
-  const [showDivergence, setShowDivergence] = useState(true);
-  const [showIntersections, setShowIntersections] = useState(true);
   const [alignmentThreshold, setAlignmentThreshold] = useState(20);
 
   // Decoded coordinates for stats
@@ -90,6 +105,17 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
     }
   };
 
+  const handleTabChange = (value: string) => {
+    if (value === 'overlay') {
+      setComparisonType('overlay');
+    } else if (value === 'sideBySide') {
+      setComparisonType('sideBySide');
+    } else if (value === 'diff') {
+      setComparisonType('diff');
+    }
+    // Don't change comparison type for 'stats' tab
+  };
+
   return (
     <div className="panel animate-fade-in">
       <div className="flex items-center justify-between mb-3">
@@ -124,7 +150,7 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
 
           {secondaryPolyline && (
             <>
-              <Tabs value={comparisonTab} onValueChange={setComparisonTab} className="w-full">
+              <Tabs value={comparisonType === 'stats' ? 'stats' : comparisonType} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid grid-cols-4 mb-2 w-full bg-muted/70">
                   <TabsTrigger value="overlay" className="text-xs flex gap-1 items-center">
                     <Layers className="h-3 w-3" />
