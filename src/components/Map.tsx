@@ -1,10 +1,11 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { mapStyles, loadCustomStyles } from '../utils/mapStyles';
 import MapControls from './map/MapControls';
 import StyleSelector, { StyleOption } from './map/StyleSelector';
 import MapRenderers from './map/MapRenderers';
+import { useMapStyles } from './map/MapStyleHooks';
 import { 
   addPrimaryPolyline, 
   addSecondaryPolyline, 
@@ -35,27 +36,9 @@ const Map: React.FC<MapProps> = ({
 }) => {
   const map = useRef<maplibregl.Map | null>(null);
   const secondMap = useRef<maplibregl.Map | null>(null);
-  const [styleOptions, setStyleOptions] = useState<StyleOption[]>([]);
-  const [currentStyleId, setCurrentStyleId] = useState<string>('osm');
   const [splitViewActive, setSplitViewActive] = useState(false);
   const [localComparisonType, setLocalComparisonType] = useState<'overlay' | 'sideBySide' | 'diff'>(comparisonType);
-
-  useEffect(() => {
-    const builtInStyles = Object.entries(mapStyles).map(([id, style]) => ({
-      id,
-      name: style.name,
-      url: style.url
-    }));
-    
-    const customStyles = Object.entries(loadCustomStyles()).map(([id, style]) => ({
-      id,
-      name: style.name,
-      url: style.url,
-      isCustom: true
-    }));
-    
-    setStyleOptions([...builtInStyles, ...customStyles]);
-  }, []);
+  const { styleOptions, setStyleOptions, currentStyleId, setCurrentStyleId } = useMapStyles();
 
   useEffect(() => {
     setLocalComparisonType(comparisonType);
