@@ -1,74 +1,40 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Header from '../components/Header';
 import Map from '../components/Map';
 import PolylineInput from '../components/PolylineInput';
 import PolylineComparison from '../components/PolylineComparison';
 import Statistics from '../components/Statistics';
 import ExportOptions from '../components/ExportOptions';
-import { decodePolyline, calculateDistance } from '../utils/polylineDecoder';
+import { usePolyline } from '../hooks/usePolyline';
+import { usePolylineComparison } from '../hooks/usePolylineComparison';
 
 const Index = () => {
-  const [polyline, setPolyline] = useState('');
-  const [coordinates, setCoordinates] = useState<[number, number][]>([]);
-  const [distance, setDistance] = useState(0);
-  const [isDecoding, setIsDecoding] = useState(false);
-  const [comparisonMode, setComparisonMode] = useState(false);
-  const [secondaryPolyline, setSecondaryPolyline] = useState('');
-  const [secondaryCoordinates, setSecondaryCoordinates] = useState<[number, number][]>([]);
-  const [comparisonType, setComparisonType] = useState<'overlay' | 'sideBySide' | 'diff'>('overlay');
-  const [overlayOpacity, setOverlayOpacity] = useState(50);
-  const [showDivergence, setShowDivergence] = useState(true);
-  const [showIntersections, setShowIntersections] = useState(true);
-  
-  // Decode primary polyline whenever input changes
-  useEffect(() => {
-    if (!polyline) {
-      setCoordinates([]);
-      setDistance(0);
-      return;
-    }
-    
-    setIsDecoding(true);
-    
-    // Small timeout to allow the UI to update before decoding
-    const timer = setTimeout(() => {
-      try {
-        const decodedCoordinates = decodePolyline(polyline);
-        setCoordinates(decodedCoordinates);
-        setDistance(calculateDistance(decodedCoordinates));
-      } catch (error) {
-        console.error('Error decoding polyline:', error);
-      } finally {
-        setIsDecoding(false);
-      }
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [polyline]);
-  
-  // Decode secondary polyline for comparison features
-  useEffect(() => {
-    if (!secondaryPolyline) {
-      setSecondaryCoordinates([]);
-      return;
-    }
-    
-    try {
-      const decodedCoordinates = decodePolyline(secondaryPolyline);
-      setSecondaryCoordinates(decodedCoordinates);
-    } catch (error) {
-      console.error('Error decoding secondary polyline:', error);
-    }
-  }, [secondaryPolyline]);
-  
-  const handleClear = () => {
-    setPolyline('');
-  };
+  // Use our custom hooks
+  const {
+    polyline,
+    setPolyline,
+    coordinates,
+    distance,
+    isDecoding,
+    handleClear
+  } = usePolyline();
 
-  const handleComparisonTypeChange = (type: 'overlay' | 'sideBySide' | 'diff') => {
-    setComparisonType(type);
-  };
+  const {
+    comparisonMode,
+    setComparisonMode,
+    secondaryPolyline,
+    setSecondaryPolyline,
+    secondaryCoordinates,
+    comparisonType,
+    handleComparisonTypeChange,
+    overlayOpacity,
+    setOverlayOpacity,
+    showDivergence,
+    setShowDivergence,
+    showIntersections,
+    setShowIntersections
+  } = usePolylineComparison();
   
   return (
     <div className="flex flex-col h-screen p-4 md:p-6 max-w-7xl mx-auto">
