@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -11,7 +10,7 @@ import {
   addSecondaryPolyline, 
   addDifferentialAnalysis,
   cleanupMapLayers
-} from './map/MapFeatures';
+} from './map/features';
 
 interface MapProps {
   coordinates: [number, number][];
