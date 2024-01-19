@@ -3,6 +3,7 @@ import React, { useRef, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { Split } from 'lucide-react';
 import { StyleOption } from './StyleSelector';
+import MapEffects from './MapEffects';
 
 interface MapRenderersProps {
   coordinates: [number, number][];
@@ -106,6 +107,20 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
 
   return (
     <>
+      <MapEffects
+        map={map}
+        secondMap={secondMap}
+        coordinates={coordinates}
+        secondaryCoordinates={secondaryCoordinates}
+        isLoading={isLoading}
+        comparisonMode={comparisonMode}
+        comparisonType={comparisonType}
+        overlayOpacity={overlayOpacity}
+        showDivergence={showDivergence}
+        showIntersections={showIntersections}
+        splitViewActive={splitViewActive}
+      />
+      
       <div className={`h-full w-full ${splitViewActive ? 'hidden md:block md:w-1/2 md:pr-1' : ''}`}>
         <div ref={mapContainer} className="map-container h-full w-full" />
       </div>
