@@ -22,6 +22,7 @@ export function usePolylineComparison() {
     
     try {
       const decodedCoordinates = decodePolyline(secondaryPolyline);
+      console.log("Secondary polyline decoded:", decodedCoordinates.length);
       setSecondaryCoordinates(decodedCoordinates);
     } catch (error) {
       console.error('Error decoding secondary polyline:', error);
@@ -30,6 +31,7 @@ export function usePolylineComparison() {
   }, [secondaryPolyline]);
 
   const handleComparisonTypeChange = (type: ComparisonType) => {
+    console.log("Comparison type changed to:", type);
     setComparisonType(type);
   };
 

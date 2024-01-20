@@ -1,12 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
-import { 
-  addPrimaryPolyline, 
-  addSecondaryPolyline, 
-  addDifferentialAnalysis,
-  cleanupMapLayers
-} from './features';
 import MapControls from './MapControls';
 import StyleSelector from './StyleSelector';
 import MapRenderers from './MapRenderers';
@@ -52,6 +46,17 @@ const MapContainer: React.FC<MapProps> = ({
       setSplitViewActive(false);
     }
   }, [comparisonMode, localComparisonType]);
+
+  // Log props for debugging
+  useEffect(() => {
+    console.log("MapContainer props:", {
+      coordinatesLength: coordinates.length,
+      secondaryCoordinatesLength: secondaryCoordinates.length,
+      comparisonMode,
+      comparisonType: localComparisonType,
+      splitViewActive
+    });
+  }, [coordinates, secondaryCoordinates, comparisonMode, localComparisonType, splitViewActive]);
 
   // Style handling for both maps
   useEffect(() => {
