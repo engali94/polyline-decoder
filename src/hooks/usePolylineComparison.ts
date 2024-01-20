@@ -35,6 +35,13 @@ export function usePolylineComparison() {
     setComparisonType(type);
   };
 
+  // Reset comparison mode if secondary polyline is cleared
+  useEffect(() => {
+    if (comparisonMode && secondaryPolyline === '') {
+      setComparisonMode(false);
+    }
+  }, [secondaryPolyline, comparisonMode]);
+
   return {
     comparisonMode,
     setComparisonMode,
