@@ -13,16 +13,16 @@ interface PolylineComparisonProps {
   setPrimaryPolyline: (value: string) => void;
   comparisonMode: boolean;
   setComparisonMode: (value: boolean) => void;
-  secondaryPolyline?: string;
-  setSecondaryPolyline?: (value: string) => void;
-  comparisonType?: 'overlay' | 'sideBySide' | 'diff';
-  setComparisonType?: (type: 'overlay' | 'sideBySide' | 'diff') => void;
-  overlayOpacity?: number;
-  setOverlayOpacity?: (value: number) => void;
-  showDivergence?: boolean;
-  setShowDivergence?: (value: boolean) => void;
-  showIntersections?: boolean;
-  setShowIntersections?: (value: boolean) => void;
+  secondaryPolyline: string;
+  setSecondaryPolyline: (value: string) => void;
+  comparisonType: 'overlay' | 'sideBySide' | 'diff';
+  setComparisonType: (type: 'overlay' | 'sideBySide' | 'diff') => void;
+  overlayOpacity: number;
+  setOverlayOpacity: (value: number) => void;
+  showDivergence: boolean;
+  setShowDivergence: (value: boolean) => void;
+  showIntersections: boolean;
+  setShowIntersections: (value: boolean) => void;
 }
 
 const PolylineComparison: React.FC<PolylineComparisonProps> = ({
@@ -30,16 +30,16 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
   setPrimaryPolyline,
   comparisonMode,
   setComparisonMode,
-  secondaryPolyline = '',
-  setSecondaryPolyline = () => {},
-  comparisonType = 'overlay',
-  setComparisonType = () => {},
-  overlayOpacity = 50,
-  setOverlayOpacity = () => {},
-  showDivergence = true,
-  setShowDivergence = () => {},
-  showIntersections = true,
-  setShowIntersections = () => {}
+  secondaryPolyline,
+  setSecondaryPolyline,
+  comparisonType,
+  setComparisonType,
+  overlayOpacity,
+  setOverlayOpacity,
+  showDivergence,
+  setShowDivergence,
+  showIntersections,
+  setShowIntersections
 }) => {
   const [alignmentThreshold, setAlignmentThreshold] = useState(20);
   const [activeTab, setActiveTab] = useState<ComparisonViewType>(comparisonType);

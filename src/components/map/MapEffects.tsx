@@ -52,16 +52,20 @@ const MapEffects: React.FC<MapEffectsProps> = ({
 
   // Secondary polyline and comparison mode effects
   useEffect(() => {
-    if (!map.current || isLoading || !comparisonMode || !secondaryCoordinates.length) return;
+    if (!map.current || isLoading) return;
+    if (!comparisonMode || !secondaryCoordinates.length) return;
     if (comparisonType === 'sideBySide' && splitViewActive) return;
 
     const onMapLoad = () => {
-      cleanupMapLayers(map.current, comparisonType);
+      // Clean up previous layers before adding new ones
+      cleanupMapLayers(map.current!, comparisonType);
       
       if (comparisonType === 'overlay') {
         addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
       } else if (comparisonType === 'diff') {
+        // In diff mode, show both the secondary polyline and the analysis
         addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
+        
         addDifferentialAnalysis(
           map.current!,
           coordinates, 
@@ -92,7 +96,8 @@ const MapEffects: React.FC<MapEffectsProps> = ({
     showIntersections, 
     splitViewActive,
     coordinates,
-    map
+    map,
+    isLoading
   ]);
 
   // Second map effect for side-by-side view
@@ -155,3 +160,4 @@ const MapEffects: React.FC<MapEffectsProps> = ({
 };
 
 export default MapEffects;
+

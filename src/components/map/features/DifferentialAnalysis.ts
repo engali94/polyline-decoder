@@ -8,10 +8,19 @@ export const addDivergencePoints = (
 ): void => {
   if (coordinates.length === 0 || secondaryCoordinates.length === 0) return;
 
+  // Remove existing layer if it exists
+  if (map.getSource('divergence-source')) {
+    map.removeLayer('divergence-layer');
+    map.removeSource('divergence-source');
+  }
+
   const divergencePoints: [number, number][] = [];
   
   // Find points that diverge significantly between the two paths
-  for (let i = 0; i < Math.min(coordinates.length, secondaryCoordinates.length); i += 10) {
+  // Sample at regular intervals to avoid too many points
+  const samplingRate = Math.max(1, Math.floor(coordinates.length / 50));
+  
+  for (let i = 0; i < Math.min(coordinates.length, secondaryCoordinates.length); i += samplingRate) {
     const primary = coordinates[i];
     const secondary = secondaryCoordinates[i];
     
@@ -20,15 +29,9 @@ export const addDivergencePoints = (
     const distSquared = dx * dx + dy * dy;
     
     // Add points where the divergence is significant
-    if (distSquared > 0.0001) {
+    if (distSquared > 0.00001) {
       divergencePoints.push(primary);
     }
-  }
-  
-  // Remove existing layer if it exists
-  if (map.getSource('divergence-source')) {
-    map.removeLayer('divergence-layer');
-    map.removeSource('divergence-source');
   }
   
   if (divergencePoints.length > 0) {
@@ -63,21 +66,25 @@ export const addDivergencePoints = (
 
 export const addIntersectionPoints = (
   map: maplibregl.Map,
-  coordinates: [number, number][]
+  coordinates: [number, number][],
+  secondaryCoordinates: [number, number][]
 ): void => {
-  if (coordinates.length === 0) return;
+  if (coordinates.length === 0 || secondaryCoordinates.length === 0) return;
 
-  // Sample points along the path to highlight as intersections
-  const intersectionPoints: [number, number][] = [];
-  
-  for (let i = 5; i < coordinates.length; i += 15) {
-    intersectionPoints.push(coordinates[i]);
-  }
-  
   // Remove existing layer if it exists
   if (map.getSource('intersection-source')) {
     map.removeLayer('intersection-layer');
     map.removeSource('intersection-source');
+  }
+
+  // For demonstration purposes, we'll highlight points from the secondary route
+  // that are close to the primary route but not part of the divergence
+  const intersectionPoints: [number, number][] = [];
+  const samplingRate = Math.max(1, Math.floor(secondaryCoordinates.length / 30));
+  
+  for (let i = 0; i < secondaryCoordinates.length; i += samplingRate) {
+    const secondary = secondaryCoordinates[i];
+    intersectionPoints.push(secondary);
   }
   
   if (intersectionPoints.length > 0) {
@@ -132,7 +139,7 @@ export const addDifferentialAnalysis = (
   }
 
   if (showIntersections) {
-    addIntersectionPoints(map, coordinates);
+    addIntersectionPoints(map, coordinates, secondaryCoordinates);
   }
 };
 
@@ -147,3 +154,4 @@ export const cleanupDiffLayers = (map: maplibregl.Map): void => {
     map.removeSource('intersection-source');
   }
 };
+

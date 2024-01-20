@@ -25,6 +25,7 @@ export function usePolylineComparison() {
       setSecondaryCoordinates(decodedCoordinates);
     } catch (error) {
       console.error('Error decoding secondary polyline:', error);
+      setSecondaryCoordinates([]);
     }
   }, [secondaryPolyline]);
 
