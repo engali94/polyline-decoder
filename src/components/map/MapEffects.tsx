@@ -102,44 +102,43 @@ const MapEffects: React.FC<MapEffectsProps> = ({
 
   // Second map effect for side-by-side view
   useEffect(() => {
-    if (!secondMap.current || isLoading || !splitViewActive) return;
+    if (!secondMap.current || isLoading) return;
+    if (!comparisonMode || !secondaryCoordinates.length) return;
+    if (!splitViewActive) return;
 
     const onMapLoad = () => {
-      if (secondaryCoordinates.length > 0) {
-        const sourceId = 'second-primary-polyline-source';
-        const layerId = 'second-primary-polyline-layer';
-
-        if (secondMap.current?.getSource(sourceId)) {
-          secondMap.current.removeLayer(layerId);
-          secondMap.current.removeSource(sourceId);
-        }
-
-        secondMap.current?.addSource(sourceId, {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: secondaryCoordinates
-            }
-          }
-        });
-
-        secondMap.current?.addLayer({
-          id: layerId,
-          type: 'line',
-          source: sourceId,
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#10b981',
-            'line-width': 3
-          }
-        });
+      // Clean up before adding new secondary polyline
+      if (secondMap.current?.getSource('second-polyline-source')) {
+        secondMap.current.removeLayer('second-polyline-layer');
+        secondMap.current.removeSource('second-polyline-source');
       }
+      
+      // Add secondary polyline to the second map
+      secondMap.current?.addSource('second-polyline-source', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: secondaryCoordinates
+          }
+        }
+      });
+
+      secondMap.current?.addLayer({
+        id: 'second-polyline-layer',
+        type: 'line',
+        source: 'second-polyline-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#10b981',
+          'line-width': 3
+        }
+      });
     };
 
     if (secondMap.current.loaded()) {
@@ -149,15 +148,14 @@ const MapEffects: React.FC<MapEffectsProps> = ({
     }
 
     return () => {
-      if (secondMap.current?.getSource('second-primary-polyline-source')) {
-        secondMap.current.removeLayer('second-primary-polyline-layer');
-        secondMap.current.removeSource('second-primary-polyline-source');
+      if (secondMap.current?.getSource('second-polyline-source')) {
+        secondMap.current.removeLayer('second-polyline-layer');
+        secondMap.current.removeSource('second-polyline-source');
       }
     };
-  }, [secondaryCoordinates, splitViewActive, secondMap, isLoading]);
+  }, [secondaryCoordinates, splitViewActive, secondMap, isLoading, comparisonMode]);
 
   return null;
 };
 
 export default MapEffects;
-
