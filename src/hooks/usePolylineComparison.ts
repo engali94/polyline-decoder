@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { decodePolyline } from '../utils/polylineDecoder';
 
 type ComparisonType = 'overlay' | 'sideBySide' | 'diff';
@@ -36,7 +36,7 @@ export function usePolylineComparison() {
   };
 
   // Toggle comparison mode
-  const toggleComparisonMode = (value: boolean) => {
+  const toggleComparisonMode = useCallback((value: boolean) => {
     console.log("Toggling comparison mode to:", value);
     setComparisonMode(value);
     
@@ -44,7 +44,7 @@ export function usePolylineComparison() {
     if (!value) {
       setSecondaryPolyline('');
     }
-  };
+  }, []);
 
   // Reset comparison mode if secondary polyline is cleared
   useEffect(() => {

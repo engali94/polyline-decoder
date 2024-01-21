@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Switch } from '../ui/switch';
+import { Button } from '../ui/button';
 
 interface ComparisonHeaderProps {
   comparisonMode: boolean;
