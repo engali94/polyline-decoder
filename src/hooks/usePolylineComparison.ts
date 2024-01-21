@@ -35,6 +35,17 @@ export function usePolylineComparison() {
     setComparisonType(type);
   };
 
+  // Toggle comparison mode
+  const toggleComparisonMode = (value: boolean) => {
+    console.log("Toggling comparison mode to:", value);
+    setComparisonMode(value);
+    
+    // If turning off comparison mode, reset the secondary polyline
+    if (!value) {
+      setSecondaryPolyline('');
+    }
+  };
+
   // Reset comparison mode if secondary polyline is cleared
   useEffect(() => {
     if (comparisonMode && secondaryPolyline === '') {
@@ -44,7 +55,7 @@ export function usePolylineComparison() {
 
   return {
     comparisonMode,
-    setComparisonMode,
+    setComparisonMode: toggleComparisonMode,
     secondaryPolyline,
     setSecondaryPolyline,
     secondaryCoordinates,

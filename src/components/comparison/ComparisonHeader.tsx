@@ -20,7 +20,10 @@ const ComparisonHeader: React.FC<ComparisonHeaderProps> = ({
         <span className="text-xs text-muted-foreground">Enable</span>
         <Switch 
           checked={comparisonMode} 
-          onCheckedChange={handleComparisonToggle}
+          onCheckedChange={(checked) => {
+            console.log("Switch toggled:", checked);
+            handleComparisonToggle(checked);
+          }}
         />
       </div>
     </div>
