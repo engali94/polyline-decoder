@@ -35,9 +35,9 @@ export function usePolylineComparison() {
     setComparisonType(type);
   };
 
-  // Toggle comparison mode
+  // Toggle comparison mode with useCallback to maintain function reference
   const toggleComparisonMode = useCallback((value: boolean) => {
-    console.log("Toggling comparison mode to:", value);
+    console.log("Toggle comparison mode called with:", value);
     setComparisonMode(value);
     
     // If turning off comparison mode, reset the secondary polyline
