@@ -1,6 +1,7 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { decodePolyline } from '../utils/polylineDecoder';
+import { toast } from 'sonner';
 
 type ComparisonType = 'overlay' | 'sideBySide' | 'diff';
 
@@ -35,16 +36,21 @@ export function usePolylineComparison() {
     setComparisonType(type);
   };
 
-  const handleComparisonToggle = useCallback((value: boolean) => {
-    console.log("Toggle comparison mode called with:", value);
-    // Force cast to boolean to ensure we're setting a boolean value
-    setComparisonMode(!!value);
+  const handleComparisonToggle = (value: boolean) => {
+    // Direct boolean assignment to prevent type issues
+    const newValue = Boolean(value);
+    console.log("Toggle comparison mode:", newValue);
     
-    // If turning off comparison mode, reset the secondary polyline
-    if (!value) {
+    setComparisonMode(newValue);
+    
+    // Show toast notification for better UX
+    if (newValue) {
+      toast.success("Comparison mode enabled");
+    } else {
       setSecondaryPolyline('');
+      toast.info("Comparison mode disabled");
     }
-  }, []);
+  };
 
   // Reset comparison mode if secondary polyline is cleared
   useEffect(() => {

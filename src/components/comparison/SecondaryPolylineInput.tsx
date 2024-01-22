@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Button } from '../ui/button';
+import { Clipboard, X } from 'lucide-react';
 
 interface SecondaryPolylineInputProps {
   secondaryPolyline: string;
@@ -12,9 +14,49 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
   setSecondaryPolyline,
   secondaryCoordinates
 }) => {
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setSecondaryPolyline(text);
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard contents: ', err);
+    }
+  };
+
+  const handleClear = () => {
+    setSecondaryPolyline('');
+  };
+
   return (
     <div className="mb-4">
-      <label className="block text-sm text-muted-foreground mb-1">Secondary Polyline</label>
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-sm text-muted-foreground">Secondary Polyline</label>
+        <div className="flex items-center gap-1">
+          <Button 
+            type="button" 
+            size="sm" 
+            variant="outline" 
+            className="h-6 px-2 text-xs"
+            onClick={handlePaste}
+          >
+            <Clipboard className="h-3 w-3 mr-1" />
+            Paste
+          </Button>
+          {secondaryPolyline && (
+            <Button 
+              type="button" 
+              size="sm" 
+              variant="ghost" 
+              className="h-6 w-6 p-0"
+              onClick={handleClear}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </div>
       <textarea
         value={secondaryPolyline}
         onChange={(e) => setSecondaryPolyline(e.target.value)}
