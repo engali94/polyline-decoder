@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Switch } from '../ui/switch';
-import { Button } from '../ui/button';
 
 interface ComparisonHeaderProps {
   comparisonMode: boolean;
@@ -12,11 +11,6 @@ const ComparisonHeader: React.FC<ComparisonHeaderProps> = ({
   comparisonMode, 
   handleComparisonToggle 
 }) => {
-  const onToggle = (checked: boolean) => {
-    console.log("ComparisonHeader toggle clicked with value:", checked);
-    handleComparisonToggle(checked);
-  };
-
   return (
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center space-x-1">
@@ -25,8 +19,11 @@ const ComparisonHeader: React.FC<ComparisonHeaderProps> = ({
       <div className="flex items-center space-x-2">
         <span className="text-xs text-muted-foreground">Enable</span>
         <Switch 
-          checked={comparisonMode} 
-          onCheckedChange={onToggle}
+          checked={comparisonMode}
+          onCheckedChange={(checked) => {
+            console.log("Direct switch toggle:", checked);
+            handleComparisonToggle(checked);
+          }}
           aria-label="Toggle comparison mode"
         />
       </div>

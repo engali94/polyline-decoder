@@ -35,15 +35,16 @@ export function usePolylineComparison() {
     setComparisonType(type);
   };
 
-  const handleComparisonToggle = (value: boolean) => {
-    console.log("handleComparisonToggle called with:", value);
-    setComparisonMode(value);
+  const handleComparisonToggle = useCallback((value: boolean) => {
+    console.log("Toggle comparison mode called with:", value);
+    // Force cast to boolean to ensure we're setting a boolean value
+    setComparisonMode(!!value);
     
     // If turning off comparison mode, reset the secondary polyline
     if (!value) {
       setSecondaryPolyline('');
     }
-  };
+  }, []);
 
   // Reset comparison mode if secondary polyline is cleared
   useEffect(() => {
