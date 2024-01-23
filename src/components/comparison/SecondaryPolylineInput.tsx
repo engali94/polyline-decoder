@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '../ui/button';
 import { Clipboard, X } from 'lucide-react';
+import { Textarea } from '../ui/textarea';
 
 interface SecondaryPolylineInputProps {
   secondaryPolyline: string;
@@ -57,11 +58,11 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
           )}
         </div>
       </div>
-      <textarea
+      <Textarea
         value={secondaryPolyline}
         onChange={(e) => setSecondaryPolyline(e.target.value)}
-        placeholder="Paste the comparison polyline here..."
-        className="w-full h-16 resize-none bg-background border border-input rounded-md p-2 text-xs font-mono focus:ring-1 focus:ring-primary/30 focus:outline-none"
+        placeholder="Type or paste the comparison polyline here..."
+        className="w-full h-16 resize-none bg-background text-xs font-mono focus:ring-1 focus:ring-primary/30 focus:outline-none"
       />
       <div className="text-xs mt-1 text-muted-foreground">
         {secondaryPolyline 
