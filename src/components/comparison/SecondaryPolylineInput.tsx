@@ -31,18 +31,18 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
   };
 
   return (
-    <div className="mb-4">
-      <div className="flex items-center justify-between mb-1">
-        <label className="block text-sm text-muted-foreground">Secondary Polyline</label>
+    <div className="mb-4 border border-primary/20 p-3 rounded-lg bg-background/50">
+      <div className="flex items-center justify-between mb-2">
+        <label className="block text-sm font-medium">Secondary Polyline Input</label>
         <div className="flex items-center gap-1">
           <Button 
             type="button" 
             size="sm" 
-            variant="outline" 
-            className="h-6 px-2 text-xs"
+            variant="secondary" 
+            className="h-8 px-3 text-sm"
             onClick={handlePaste}
           >
-            <Clipboard className="h-3 w-3 mr-1" />
+            <Clipboard className="h-4 w-4 mr-1" />
             Paste
           </Button>
           {secondaryPolyline && (
@@ -50,10 +50,10 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
               type="button" 
               size="sm" 
               variant="ghost" 
-              className="h-6 w-6 p-0"
+              className="h-8 w-8 p-0"
               onClick={handleClear}
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -61,13 +61,13 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
       <Textarea
         value={secondaryPolyline}
         onChange={(e) => setSecondaryPolyline(e.target.value)}
-        placeholder="Type or paste the comparison polyline here..."
-        className="w-full h-16 resize-none bg-background text-xs font-mono focus:ring-1 focus:ring-primary/30 focus:outline-none"
+        placeholder="Type or paste the secondary polyline here..."
+        className="w-full h-20 resize-none bg-background text-sm font-mono focus:ring-1 focus:ring-primary/30 focus:outline-none"
       />
       <div className="text-xs mt-1 text-muted-foreground">
         {secondaryPolyline 
           ? `${secondaryPolyline.length} characters, ${secondaryCoordinates.length} points` 
-          : 'No comparison data'}
+          : 'Enter your comparison polyline data here'}
       </div>
     </div>
   );

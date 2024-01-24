@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 type ComparisonType = 'overlay' | 'sideBySide' | 'diff';
 
 export function usePolylineComparison() {
-  const [comparisonMode, setComparisonMode] = useState(false);
+  // Set comparison mode to true by default
+  const [comparisonMode, setComparisonMode] = useState(true);
   const [secondaryPolyline, setSecondaryPolyline] = useState('');
   const [secondaryCoordinates, setSecondaryCoordinates] = useState<[number, number][]>([]);
   const [comparisonType, setComparisonType] = useState<ComparisonType>('overlay');
