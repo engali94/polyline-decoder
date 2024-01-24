@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '../ui/button';
 import { Clipboard, X } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
+import { Input } from '../ui/input';
 
 interface SecondaryPolylineInputProps {
   secondaryPolyline: string;
@@ -31,29 +32,30 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
   };
 
   return (
-    <div className="mb-4 border border-primary/20 p-3 rounded-lg bg-background/50">
-      <div className="flex items-center justify-between mb-2">
-        <label className="block text-sm font-medium">Secondary Polyline Input</label>
-        <div className="flex items-center gap-1">
+    <div className="mb-4 border-2 border-primary/40 p-4 rounded-lg bg-background shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <label className="block text-base font-medium text-primary">Secondary Polyline Input</label>
+        <div className="flex items-center gap-2">
           <Button 
             type="button" 
             size="sm" 
             variant="secondary" 
-            className="h-8 px-3 text-sm"
+            className="h-9 px-4 text-sm"
             onClick={handlePaste}
           >
-            <Clipboard className="h-4 w-4 mr-1" />
-            Paste
+            <Clipboard className="h-4 w-4 mr-2" />
+            Paste from Clipboard
           </Button>
           {secondaryPolyline && (
             <Button 
               type="button" 
               size="sm" 
-              variant="ghost" 
-              className="h-8 w-8 p-0"
+              variant="outline" 
+              className="h-9 px-3"
               onClick={handleClear}
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 mr-1" />
+              Clear
             </Button>
           )}
         </div>
@@ -61,13 +63,18 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
       <Textarea
         value={secondaryPolyline}
         onChange={(e) => setSecondaryPolyline(e.target.value)}
-        placeholder="Type or paste the secondary polyline here..."
-        className="w-full h-20 resize-none bg-background text-sm font-mono focus:ring-1 focus:ring-primary/30 focus:outline-none"
+        placeholder="Type or paste your secondary polyline data here..."
+        className="w-full h-24 resize-none bg-background text-sm font-mono border-2 focus:border-primary focus:ring-1 focus:ring-primary/30 focus:outline-none"
       />
-      <div className="text-xs mt-1 text-muted-foreground">
-        {secondaryPolyline 
-          ? `${secondaryPolyline.length} characters, ${secondaryCoordinates.length} points` 
-          : 'Enter your comparison polyline data here'}
+      <div className="text-sm mt-2 text-foreground flex justify-between items-center">
+        <span>
+          {secondaryPolyline 
+            ? `${secondaryPolyline.length} characters, ${secondaryCoordinates.length} points` 
+            : 'Enter your comparison polyline data here'}
+        </span>
+        {!secondaryPolyline && (
+          <span className="text-xs text-muted-foreground italic">Paste encoded polyline or type it directly into the field above</span>
+        )}
       </div>
     </div>
   );

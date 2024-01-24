@@ -76,33 +76,30 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
         handleComparisonToggle={handleComparisonToggle} 
       />
 
-      {comparisonMode && (
-        <>
-          <SecondaryPolylineInput 
-            secondaryPolyline={secondaryPolyline}
-            setSecondaryPolyline={setSecondaryPolyline}
-            secondaryCoordinates={secondaryCoordinates}
-          />
+      {/* Always show the secondary polyline input regardless of comparison mode */}
+      <SecondaryPolylineInput 
+        secondaryPolyline={secondaryPolyline}
+        setSecondaryPolyline={setSecondaryPolyline}
+        secondaryCoordinates={secondaryCoordinates}
+      />
 
-          {secondaryPolyline && (
-            <ComparisonTabs 
-              activeTab={activeTab}
-              handleTabChange={handleTabChange}
-              overlayOpacity={overlayOpacity}
-              setOverlayOpacity={setOverlayOpacity}
-              showDivergence={showDivergence}
-              setShowDivergence={setShowDivergence}
-              showIntersections={showIntersections}
-              setShowIntersections={setShowIntersections}
-              alignmentThreshold={alignmentThreshold}
-              setAlignmentThreshold={setAlignmentThreshold}
-              chartData={chartData}
-              distanceDiff={distanceDiff}
-              pointsDiff={pointsDiff}
-              formatDistance={formatDistance}
-            />
-          )}
-        </>
+      {secondaryPolyline && (
+        <ComparisonTabs 
+          activeTab={activeTab}
+          handleTabChange={handleTabChange}
+          overlayOpacity={overlayOpacity}
+          setOverlayOpacity={setOverlayOpacity}
+          showDivergence={showDivergence}
+          setShowDivergence={setShowDivergence}
+          showIntersections={showIntersections}
+          setShowIntersections={setShowIntersections}
+          alignmentThreshold={alignmentThreshold}
+          setAlignmentThreshold={setAlignmentThreshold}
+          chartData={chartData}
+          distanceDiff={distanceDiff}
+          pointsDiff={pointsDiff}
+          formatDistance={formatDistance}
+        />
       )}
     </div>
   );
