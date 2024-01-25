@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { decodePolyline, calculateDistance } from '../utils/polylineDecoder';
 import ComparisonHeader from './comparison/ComparisonHeader';
@@ -23,6 +24,8 @@ interface PolylineComparisonProps {
   setShowDivergence: (value: boolean) => void;
   showIntersections: boolean;
   setShowIntersections: (value: boolean) => void;
+  precision?: number;
+  setPrecision?: (value: number) => void;
 }
 
 const PolylineComparison: React.FC<PolylineComparisonProps> = ({
@@ -39,13 +42,15 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
   showDivergence,
   setShowDivergence,
   showIntersections,
-  setShowIntersections
+  setShowIntersections,
+  precision = 5,
+  setPrecision
 }) => {
   const [alignmentThreshold, setAlignmentThreshold] = useState(20);
   const [activeTab, setActiveTab] = useState<ComparisonViewType>(comparisonType);
 
-  const primaryCoordinates = primaryPolyline ? decodePolyline(primaryPolyline) : [];
-  const secondaryCoordinates = secondaryPolyline ? decodePolyline(secondaryPolyline) : [];
+  const primaryCoordinates = primaryPolyline ? decodePolyline(primaryPolyline, precision) : [];
+  const secondaryCoordinates = secondaryPolyline ? decodePolyline(secondaryPolyline, precision) : [];
 
   const primaryDistance = calculateDistance(primaryCoordinates);
   const secondaryDistance = calculateDistance(secondaryCoordinates);
@@ -87,6 +92,8 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
         secondaryPolyline={secondaryPolyline}
         setSecondaryPolyline={setSecondaryPolyline}
         secondaryCoordinates={secondaryCoordinates}
+        precision={precision}
+        onPrecisionChange={setPrecision}
       />
 
       {secondaryPolyline && (

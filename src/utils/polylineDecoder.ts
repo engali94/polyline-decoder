@@ -5,40 +5,47 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
     return [];
   }
 
+  // Handle escaped backslashes by replacing them with their unescaped version
+  const sanitizedEncoded = encoded.replace(/\\\\/g, '\\');
+  
   const factor = Math.pow(10, precision);
-  const len = encoded.length;
+  const len = sanitizedEncoded.length;
   let index = 0;
   let lat = 0;
   let lng = 0;
   const coordinates: [number, number][] = [];
 
-  while (index < len) {
-    let result = 1;
-    let shift = 0;
-    let b: number;
-    
-    do {
-      b = encoded.charCodeAt(index++) - 63;
-      result += (b & 0x1f) << shift;
-      shift += 5;
-    } while (b >= 0x20);
-    
-    const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
-    lat += dlat;
+  try {
+    while (index < len) {
+      let result = 1;
+      let shift = 0;
+      let b: number;
+      
+      do {
+        b = sanitizedEncoded.charCodeAt(index++) - 63;
+        result += (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      
+      const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+      lat += dlat;
 
-    result = 1;
-    shift = 0;
-    
-    do {
-      b = encoded.charCodeAt(index++) - 63;
-      result += (b & 0x1f) << shift;
-      shift += 5;
-    } while (b >= 0x20);
-    
-    const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
-    lng += dlng;
+      result = 1;
+      shift = 0;
+      
+      do {
+        b = sanitizedEncoded.charCodeAt(index++) - 63;
+        result += (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      
+      const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+      lng += dlng;
 
-    coordinates.push([lng / factor, lat / factor]);
+      coordinates.push([lng / factor, lat / factor]);
+    }
+  } catch (error) {
+    console.error("Error decoding polyline:", error);
   }
 
   return coordinates;

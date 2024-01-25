@@ -7,6 +7,7 @@ export function usePolyline() {
   const [coordinates, setCoordinates] = useState<[number, number][]>([]);
   const [distance, setDistance] = useState(0);
   const [isDecoding, setIsDecoding] = useState(false);
+  const [precision, setPrecision] = useState(5);
 
   // Decode polyline whenever input changes
   useEffect(() => {
@@ -21,7 +22,7 @@ export function usePolyline() {
     // Small timeout to allow the UI to update before decoding
     const timer = setTimeout(() => {
       try {
-        const decodedCoordinates = decodePolyline(polyline);
+        const decodedCoordinates = decodePolyline(polyline, precision);
         setCoordinates(decodedCoordinates);
         setDistance(calculateDistance(decodedCoordinates));
       } catch (error) {
@@ -32,7 +33,7 @@ export function usePolyline() {
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [polyline]);
+  }, [polyline, precision]);
 
   const handleClear = () => {
     setPolyline('');
@@ -44,6 +45,8 @@ export function usePolyline() {
     coordinates,
     distance,
     isDecoding,
-    handleClear
+    handleClear,
+    precision,
+    setPrecision
   };
 }

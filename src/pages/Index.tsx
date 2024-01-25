@@ -17,7 +17,9 @@ const Index = () => {
     coordinates,
     distance,
     isDecoding,
-    handleClear
+    handleClear,
+    precision,
+    setPrecision
   } = usePolyline();
 
   const {
@@ -58,7 +60,9 @@ const Index = () => {
           <PolylineInput 
             value={polyline} 
             onChange={setPolyline} 
-            onClear={handleClear} 
+            onClear={handleClear}
+            precision={precision}
+            onPrecisionChange={setPrecision}
           />
           
           <PolylineComparison
@@ -76,6 +80,8 @@ const Index = () => {
             setShowDivergence={setShowDivergence}
             showIntersections={showIntersections}
             setShowIntersections={setShowIntersections}
+            precision={precision}
+            setPrecision={setPrecision}
           />
           
           <Statistics coordinates={coordinates} distance={distance} />

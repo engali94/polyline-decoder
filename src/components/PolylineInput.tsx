@@ -1,14 +1,29 @@
 
 import React, { useState } from 'react';
-import { Trash2, Copy, Sparkles } from 'lucide-react';
+import { Trash2, Copy, Sparkles, Scaling } from 'lucide-react';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from './ui/select';
 
 interface PolylineInputProps {
   value: string;
   onChange: (value: string) => void;
   onClear: () => void;
+  precision?: number;
+  onPrecisionChange?: (precision: number) => void;
 }
 
-const PolylineInput: React.FC<PolylineInputProps> = ({ value, onChange, onClear }) => {
+const PolylineInput: React.FC<PolylineInputProps> = ({ 
+  value, 
+  onChange, 
+  onClear,
+  precision = 5, 
+  onPrecisionChange 
+}) => {
   const [isFocused, setIsFocused] = useState(false);
   
   const handlePaste = async () => {
@@ -27,6 +42,21 @@ const PolylineInput: React.FC<PolylineInputProps> = ({ value, onChange, onClear 
           <span className="bg-primary/10 px-2 py-0.5 rounded-full text-xs font-medium text-primary">Input</span>
         </div>
         <div className="flex items-center space-x-1">
+          {onPrecisionChange && (
+            <Select 
+              value={precision.toString()} 
+              onValueChange={(val) => onPrecisionChange(Number(val))}
+            >
+              <SelectTrigger className="h-8 min-w-[80px] text-xs">
+                <SelectValue placeholder="Precision" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">Precision 5</SelectItem>
+                <SelectItem value="6">Precision 6</SelectItem>
+                <SelectItem value="7">Precision 7</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
           <button
             onClick={handlePaste}
             className="p-1.5 text-xs bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
