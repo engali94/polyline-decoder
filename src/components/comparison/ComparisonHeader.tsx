@@ -7,9 +7,9 @@ interface ComparisonHeaderProps {
   handleComparisonToggle: (value: boolean) => void;
 }
 
-const ComparisonHeader: React.FC<ComparisonHeaderProps> = () => {
+const ComparisonHeader: React.FC<ComparisonHeaderProps> = ({ comparisonMode, handleComparisonToggle }) => {
   return (
-    <div className="flex items-center mb-3">
+    <div className="flex items-center justify-between mb-3">
       <div className="flex items-center space-x-2">
         <span className="bg-primary/10 px-2 py-0.5 rounded-full text-xs font-medium text-primary">Comparison</span>
         <div className="hidden sm:flex items-center text-xs text-muted-foreground">

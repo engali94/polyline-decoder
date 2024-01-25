@@ -28,6 +28,7 @@ export function usePolylineComparison() {
       setSecondaryCoordinates(decodedCoordinates);
     } catch (error) {
       console.error('Error decoding secondary polyline:', error);
+      toast.error('Error decoding secondary polyline');
       setSecondaryCoordinates([]);
     }
   }, [secondaryPolyline]);
@@ -52,13 +53,6 @@ export function usePolylineComparison() {
       toast.info("Comparison mode disabled");
     }
   };
-
-  // Reset comparison mode if secondary polyline is cleared
-  useEffect(() => {
-    if (comparisonMode && secondaryPolyline === '') {
-      setComparisonMode(false);
-    }
-  }, [secondaryPolyline, comparisonMode]);
 
   return {
     comparisonMode,

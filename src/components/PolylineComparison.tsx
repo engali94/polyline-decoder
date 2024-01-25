@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { decodePolyline, calculateDistance } from '../utils/polylineDecoder';
 import ComparisonHeader from './comparison/ComparisonHeader';
 import SecondaryPolylineInput from './comparison/SecondaryPolylineInput';
 import ComparisonTabs from './comparison/ComparisonTabs';
 import { generateChartData, formatDistance } from './comparison/PolylineComparisonUtils';
+import { toast } from 'sonner';
 
 type ComparisonViewType = 'overlay' | 'sideBySide' | 'diff' | 'stats';
 
@@ -54,12 +55,13 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
   
   const chartData = generateChartData(primaryCoordinates, secondaryCoordinates);
   
-  const handleComparisonToggle = (value: boolean) => {
-    setComparisonMode(value);
-    if (!value) {
-      setSecondaryPolyline('');
+  // Enable comparison mode automatically when secondary polyline is entered
+  useEffect(() => {
+    if (secondaryPolyline && !comparisonMode) {
+      setComparisonMode(true);
+      toast.success("Comparison mode enabled");
     }
-  };
+  }, [secondaryPolyline, comparisonMode, setComparisonMode]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as ComparisonViewType);
@@ -73,10 +75,10 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
     <div className="panel animate-fade-in">
       <ComparisonHeader 
         comparisonMode={comparisonMode} 
-        handleComparisonToggle={handleComparisonToggle} 
+        handleComparisonToggle={setComparisonMode} 
       />
 
-      {/* Always show the secondary polyline input regardless of comparison mode */}
+      {/* Always show the secondary polyline input */}
       <SecondaryPolylineInput 
         secondaryPolyline={secondaryPolyline}
         setSecondaryPolyline={setSecondaryPolyline}
