@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { decodePolyline, calculateDistance } from '../utils/polylineDecoder';
 import ComparisonHeader from './comparison/ComparisonHeader';
@@ -62,6 +61,11 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
       toast.success("Comparison mode enabled");
     }
   }, [secondaryPolyline, comparisonMode, setComparisonMode]);
+
+  // Keep activeTab in sync with comparisonType
+  useEffect(() => {
+    setActiveTab(comparisonType);
+  }, [comparisonType]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as ComparisonViewType);

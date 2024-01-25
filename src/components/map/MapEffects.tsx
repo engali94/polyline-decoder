@@ -82,9 +82,14 @@ const MapEffects: React.FC<MapEffectsProps> = ({
       map.current.once('load', onMapLoad);
     }
 
+    // Re-render when tab changes - essential fix for disappearing polylines
     return () => {
       if (map.current) {
         cleanupMapLayers(map.current, comparisonType);
+        // Immediately re-add primary polyline to prevent it from disappearing
+        if (coordinates.length > 0) {
+          addPrimaryPolyline(map.current, coordinates, false);
+        }
       }
     };
   }, [
