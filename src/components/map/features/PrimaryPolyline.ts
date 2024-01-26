@@ -8,6 +8,9 @@ export const addPrimaryPolyline = (
 ): void => {
   if (isLoading || !coordinates.length) return;
 
+  console.log("Adding primary polyline with", coordinates.length, "points");
+  console.log("Sample coordinates:", coordinates.slice(0, 3));
+
   const sourceId = 'polyline-source';
   const layerId = 'polyline-layer';
 
@@ -46,15 +49,19 @@ export const addPrimaryPolyline = (
 
   // Fit the map to the bounds of the polyline
   if (coordinates.length > 1) {
-    const bounds = coordinates.reduce(
-      (bounds, coord) => bounds.extend(coord as [number, number]), 
-      new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
-    );
-    
-    map.fitBounds(bounds, {
-      padding: 50,
-      maxZoom: 15,
-      duration: 1000
-    });
+    try {
+      const bounds = coordinates.reduce(
+        (bounds, coord) => bounds.extend(coord as [number, number]), 
+        new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
+      );
+      
+      map.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 15,
+        duration: 1000
+      });
+    } catch (error) {
+      console.error("Error fitting map to bounds:", error);
+    }
   }
 };

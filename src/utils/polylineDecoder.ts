@@ -42,6 +42,8 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
       const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
       lng += dlng;
 
+      // Google's polyline format returns coordinates as lat,lng but GeoJSON
+      // and maplibre-gl expect coords as [lng, lat]
       coordinates.push([lng / factor, lat / factor]);
     }
   } catch (error) {

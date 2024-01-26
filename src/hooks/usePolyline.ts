@@ -22,9 +22,16 @@ export function usePolyline() {
     // Small timeout to allow the UI to update before decoding
     const timer = setTimeout(() => {
       try {
+        // The decoder returns coordinates as [lng, lat], 
+        // which is the correct order for map display
         const decodedCoordinates = decodePolyline(polyline, precision);
         setCoordinates(decodedCoordinates);
         setDistance(calculateDistance(decodedCoordinates));
+        
+        // Log for debugging
+        if (decodedCoordinates.length > 0) {
+          console.log("First coordinate:", decodedCoordinates[0]);
+        }
       } catch (error) {
         console.error('Error decoding polyline:', error);
       } finally {
