@@ -42,9 +42,19 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
       const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
       lng += dlng;
 
-      // Google's polyline format returns coordinates as lat,lng but GeoJSON
-      // and maplibre-gl expect coords as [lng, lat]
-      coordinates.push([lng / factor, lat / factor]);
+      // CRITICAL FIX: Google's polyline format returns coordinates as lat,lng
+      // but GeoJSON and maplibre-gl expect coords as [lng, lat]
+      // So we need to swap the order
+      const latitude = lat / factor;
+      const longitude = lng / factor;
+      
+      // Validate coordinates before adding
+      if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
+        // This is the fix - consistently use [longitude, latitude] order
+        coordinates.push([longitude, latitude]);
+      } else {
+        console.warn(`Skipping invalid coordinate: [${longitude}, ${latitude}]`);
+      }
     }
   } catch (error) {
     console.error("Error decoding polyline:", error);

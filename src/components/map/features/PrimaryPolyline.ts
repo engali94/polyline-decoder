@@ -50,6 +50,8 @@ export const addPrimaryPolyline = (
   // Fit the map to the bounds of the polyline
   if (coordinates.length > 1) {
     try {
+      // Create a bounding box from the coordinates
+      // Note: MapLibre expects [lng, lat] format which we are now consistently using
       const bounds = coordinates.reduce(
         (bounds, coord) => bounds.extend(coord as [number, number]), 
         new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
