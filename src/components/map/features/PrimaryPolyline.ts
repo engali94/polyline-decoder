@@ -11,59 +11,83 @@ export const addPrimaryPolyline = (
   console.log("Adding primary polyline with", coordinates.length, "points");
   console.log("Sample coordinates:", coordinates.slice(0, 3));
 
+  // Check if map is loaded and has a style
+  if (!map.isStyleLoaded()) {
+    console.log("Map style not loaded yet, waiting...");
+    map.once('style.load', () => {
+      addPrimaryPolyline(map, coordinates, isLoading);
+    });
+    return;
+  }
+
   const sourceId = 'polyline-source';
   const layerId = 'polyline-layer';
 
   // Remove existing source and layer if they exist
-  if (map.getSource(sourceId)) {
-    map.removeLayer(layerId);
-    map.removeSource(sourceId);
+  try {
+    if (map.getLayer(layerId)) {
+      map.removeLayer(layerId);
+    }
+    if (map.getSource(sourceId)) {
+      map.removeSource(sourceId);
+    }
+  } catch (error) {
+    console.error("Error removing existing layers:", error);
   }
 
-  // Add the new source and layer
-  map.addSource(sourceId, {
-    type: 'geojson',
-    data: {
-      type: 'Feature',
-      properties: {},
-      geometry: {
-        type: 'LineString',
-        coordinates: coordinates
+  try {
+    // Add the new source and layer
+    map.addSource(sourceId, {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: coordinates
+        }
+      }
+    });
+
+    map.addLayer({
+      id: layerId,
+      type: 'line',
+      source: sourceId,
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round'
+      },
+      paint: {
+        'line-color': '#3b82f6',
+        'line-width': 3
+      }
+    });
+
+    // Fit the map to the bounds of the polyline
+    if (coordinates.length > 1) {
+      // Create a bounding box from the coordinates
+      const bounds = new maplibregl.LngLatBounds();
+      
+      // Add each coordinate to the bounds
+      coordinates.forEach(coord => {
+        // Make sure coordinates are valid before adding to bounds
+        if (Array.isArray(coord) && coord.length === 2) {
+          bounds.extend(coord as [number, number]);
+        }
+      });
+      
+      // Only fit bounds if we have a valid bounds object
+      if (!bounds.isEmpty()) {
+        map.fitBounds(bounds, {
+          padding: 50,
+          maxZoom: 15,
+          duration: 1000
+        });
+      } else {
+        console.error("Unable to create valid bounds from coordinates");
       }
     }
-  });
-
-  map.addLayer({
-    id: layerId,
-    type: 'line',
-    source: sourceId,
-    layout: {
-      'line-join': 'round',
-      'line-cap': 'round'
-    },
-    paint: {
-      'line-color': '#3b82f6',
-      'line-width': 3
-    }
-  });
-
-  // Fit the map to the bounds of the polyline
-  if (coordinates.length > 1) {
-    try {
-      // Create a bounding box from the coordinates
-      // Note: MapLibre expects [lng, lat] format which we are now consistently using
-      const bounds = coordinates.reduce(
-        (bounds, coord) => bounds.extend(coord as [number, number]), 
-        new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
-      );
-      
-      map.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 15,
-        duration: 1000
-      });
-    } catch (error) {
-      console.error("Error fitting map to bounds:", error);
-    }
+  } catch (error) {
+    console.error("Error adding polyline to map:", error);
   }
 };
