@@ -63,28 +63,52 @@ export const addPrimaryPolyline = (
       }
     });
 
-    // Fit the map to the bounds of the polyline
+    // Fit the map to the bounds of the polyline with error handling
     if (coordinates.length > 1) {
-      // Create a bounding box from the coordinates
-      const bounds = new maplibregl.LngLatBounds();
-      
-      // Add each coordinate to the bounds
-      coordinates.forEach(coord => {
-        // Make sure coordinates are valid before adding to bounds
-        if (Array.isArray(coord) && coord.length === 2) {
-          bounds.extend(coord as [number, number]);
-        }
-      });
-      
-      // Only fit bounds if we have a valid bounds object
-      if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, {
-          padding: 50,
-          maxZoom: 15,
-          duration: 1000
+      try {
+        // Try to directly fit to coordinates
+        const bounds = new maplibregl.LngLatBounds();
+        
+        coordinates.forEach(coord => {
+          if (Array.isArray(coord) && coord.length === 2 && 
+              !isNaN(coord[0]) && !isNaN(coord[1])) {
+            bounds.extend(coord as [number, number]);
+          }
         });
-      } else {
-        console.error("Unable to create valid bounds from coordinates");
+        
+        // Check if bounds are valid and not empty
+        if (!bounds.isEmpty()) {
+          console.log("Fitting to bounds:", bounds.toString());
+          
+          map.fitBounds(bounds, {
+            padding: 50,
+            maxZoom: 15,
+            duration: 1000
+          });
+        } else {
+          console.error("Empty bounds from coordinates, can't fit map");
+          
+          // Fallback to first coordinate when bounds are invalid
+          if (coordinates[0] && coordinates[0].length === 2) {
+            map.flyTo({
+              center: coordinates[0],
+              zoom: 12,
+              duration: 1000
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fitting bounds:", error);
+        
+        // Fallback to direct flyTo for Riyadh coordinates as a last resort
+        if (coordinates[0] && coordinates[0].length === 2) {
+          console.log("Using fallback flyTo with first coordinate:", coordinates[0]);
+          map.flyTo({
+            center: coordinates[0],
+            zoom: 12,
+            duration: 1000
+          });
+        }
       }
     }
   } catch (error) {
