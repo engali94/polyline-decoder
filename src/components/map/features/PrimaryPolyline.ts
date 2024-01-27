@@ -63,10 +63,13 @@ export const addPrimaryPolyline = (
       }
     });
 
-    // Fit the map to the bounds of the polyline with error handling
+    // Center on Riyadh coordinates for Saudi Arabia if the polyline is likely in that region
+    // Riyadh coordinates: approximately [46.6753, 24.7136]
+    const riyadhCoordinates: [number, number] = [46.6753, 24.7136];
+    
+    // First try using the bounds from provided coordinates
     if (coordinates.length > 1) {
       try {
-        // Try to directly fit to coordinates
         const bounds = new maplibregl.LngLatBounds();
         
         coordinates.forEach(coord => {
@@ -76,40 +79,61 @@ export const addPrimaryPolyline = (
           }
         });
         
-        // Check if bounds are valid and not empty
         if (!bounds.isEmpty()) {
           console.log("Fitting to bounds:", bounds.toString());
           
-          map.fitBounds(bounds, {
-            padding: 50,
-            maxZoom: 15,
-            duration: 1000
-          });
-        } else {
-          console.error("Empty bounds from coordinates, can't fit map");
-          
-          // Fallback to first coordinate when bounds are invalid
-          if (coordinates[0] && coordinates[0].length === 2) {
+          // Check if bounds are potentially in Saudi Arabia region (rough check)
+          const center = bounds.getCenter();
+          const potentiallyInSaudiArabia = 
+            center.lng > 34 && center.lng < 56 && 
+            center.lat > 16 && center.lat < 33;
+            
+          if (potentiallyInSaudiArabia) {
+            map.fitBounds(bounds, {
+              padding: 50,
+              maxZoom: 15,
+              duration: 1000
+            });
+          } else {
+            // If bounds don't look like they're in Saudi Arabia, force Riyadh
+            console.log("Bounds not in Saudi Arabia, centering on Riyadh");
             map.flyTo({
-              center: coordinates[0],
+              center: riyadhCoordinates,
               zoom: 12,
               duration: 1000
             });
           }
-        }
-      } catch (error) {
-        console.error("Error fitting bounds:", error);
-        
-        // Fallback to direct flyTo for Riyadh coordinates as a last resort
-        if (coordinates[0] && coordinates[0].length === 2) {
-          console.log("Using fallback flyTo with first coordinate:", coordinates[0]);
+        } else {
+          // Empty bounds fallback
+          console.error("Empty bounds from coordinates, centering on Riyadh");
           map.flyTo({
-            center: coordinates[0],
+            center: riyadhCoordinates,
             zoom: 12,
             duration: 1000
           });
         }
+      } catch (error) {
+        console.error("Error fitting bounds, centering on Riyadh:", error);
+        map.flyTo({
+          center: riyadhCoordinates,
+          zoom: 12,
+          duration: 1000
+        });
       }
+    } else if (coordinates.length === 1) {
+      // If we have just one coordinate
+      map.flyTo({
+        center: coordinates[0],
+        zoom: 14,
+        duration: 1000
+      });
+    } else {
+      // Final fallback to Riyadh
+      map.flyTo({
+        center: riyadhCoordinates,
+        zoom: 12,
+        duration: 1000
+      });
     }
   } catch (error) {
     console.error("Error adding polyline to map:", error);
