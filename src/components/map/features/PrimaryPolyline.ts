@@ -36,6 +36,9 @@ export const addPrimaryPolyline = (
   }
 
   try {
+    // Log all coordinates for debugging
+    console.log("All coordinates:", JSON.stringify(coordinates));
+    
     // Add the new source and layer
     map.addSource(sourceId, {
       type: 'geojson',
@@ -63,8 +66,8 @@ export const addPrimaryPolyline = (
       }
     });
 
-    // Fit the map to the polyline bounds
-    if (coordinates.length > 1) {
+    // Fit the map to the polyline bounds with better handling
+    if (coordinates.length >= 1) {
       const bounds = new maplibregl.LngLatBounds();
       
       coordinates.forEach(coord => {
@@ -76,19 +79,20 @@ export const addPrimaryPolyline = (
       
       if (!bounds.isEmpty()) {
         console.log("Fitting to bounds:", bounds.toString());
+        // Use immediate fitBounds to ensure it happens right away
         map.fitBounds(bounds, {
           padding: 50,
           maxZoom: 15,
-          duration: 1000
+          duration: 0 // No animation to ensure immediate display
+        });
+      } else if (coordinates.length === 1) {
+        // If we have just one coordinate, center on it immediately
+        console.log("Centering on single coordinate:", coordinates[0]);
+        map.jumpTo({
+          center: coordinates[0],
+          zoom: 14
         });
       }
-    } else if (coordinates.length === 1) {
-      // If we have just one coordinate, center on it
-      map.flyTo({
-        center: coordinates[0],
-        zoom: 14,
-        duration: 1000
-      });
     }
   } catch (error) {
     console.error("Error adding polyline to map:", error);
