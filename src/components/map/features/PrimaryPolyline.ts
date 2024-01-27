@@ -63,19 +63,33 @@ export const addPrimaryPolyline = (
       }
     });
 
-    // FORCE CENTER ON RIYADH NO MATTER WHAT
-    // Exact Riyadh coordinates
-    const riyadhCoordinates: [number, number] = [46.6753, 24.7136];
-    
-    console.log("FORCING map to center on Riyadh coordinates");
-    
-    // Simply force the map to Riyadh with an appropriate zoom level
-    map.flyTo({
-      center: riyadhCoordinates,
-      zoom: 12,
-      duration: 1000
-    });
-    
+    // Fit the map to the polyline bounds
+    if (coordinates.length > 1) {
+      const bounds = new maplibregl.LngLatBounds();
+      
+      coordinates.forEach(coord => {
+        if (Array.isArray(coord) && coord.length === 2 && 
+            !isNaN(coord[0]) && !isNaN(coord[1])) {
+          bounds.extend(coord as [number, number]);
+        }
+      });
+      
+      if (!bounds.isEmpty()) {
+        console.log("Fitting to bounds:", bounds.toString());
+        map.fitBounds(bounds, {
+          padding: 50,
+          maxZoom: 15,
+          duration: 1000
+        });
+      }
+    } else if (coordinates.length === 1) {
+      // If we have just one coordinate, center on it
+      map.flyTo({
+        center: coordinates[0],
+        zoom: 14,
+        duration: 1000
+      });
+    }
   } catch (error) {
     console.error("Error adding polyline to map:", error);
   }

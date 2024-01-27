@@ -48,9 +48,9 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
       const latitude = lat / factor;
       const longitude = lng / factor;
       
-      // Validate coordinates before adding
+      // Validate coordinates before adding - check reasonable values
       if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
-        // This is the fix - consistently use [longitude, latitude] order
+        // Fix - correctly use [longitude, latitude] order for GeoJSON
         coordinates.push([longitude, latitude]);
       } else {
         console.warn(`Skipping invalid coordinate: [${longitude}, ${latitude}]`);
