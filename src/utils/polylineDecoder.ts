@@ -42,37 +42,35 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
       const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
       lng += dlng;
 
-      // IMPORTANT: Google's polyline format has lat,lng but we need lng,lat for GeoJSON
-      const latitude = lat / factor;
-      const longitude = lng / factor;
+      // Google's polyline format is lat,lng
+      let latitude = lat / factor;
+      let longitude = lng / factor;
       
       console.log(`Raw decoded point: lat=${latitude}, lng=${longitude}`);
       
-      // Check for sign flipped coordinates - sometimes latitude and longitude get swapped
-      let finalLng = longitude;
-      let finalLat = latitude;
-      
-      // If coordinates are likely in Saudi Arabia (around Riyadh), we don't need to flip
-      // Riyadh is roughly at 24.7N, 46.7E
-      const isNearRiyadh = 
-        (Math.abs(latitude - 24.7) < 5 && Math.abs(longitude - 46.7) < 5) || 
-        (Math.abs(longitude - 24.7) < 5 && Math.abs(latitude - 46.7) < 5);
-      
-      // If we detect possible flipped coordinates
-      if (isNearRiyadh && Math.abs(longitude) < 90 && Math.abs(latitude) > 90) {
-        // Coordinates might be flipped
-        console.log("Detected possible flipped coordinates, correcting");
-        finalLng = latitude;
-        finalLat = longitude;
+      // Handle potentially invalid values caused by encoding issues
+      // For polylines where values seem to be scaled up incorrectly (common for some Saudi Arabia polylines)
+      if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+        // Try to determine if these are Saudi Arabia coordinates with scaling issues
+        // Riyadh is roughly at 24.7N, 46.7E
+        const scaleFactor = 10;
+        
+        if (Math.abs(latitude) > 200 && Math.abs(latitude) < 300 && 
+            Math.abs(longitude) > 400 && Math.abs(longitude) < 500) {
+          console.log("Detected likely Saudi Arabia coordinates with scaling issue");
+          latitude = latitude / scaleFactor;
+          longitude = longitude / scaleFactor;
+          console.log(`Scaled coordinates: lat=${latitude}, lng=${longitude}`);
+        }
       }
       
       // Ensure coordinates are within valid range
-      if (finalLat >= -90 && finalLat <= 90 && finalLng >= -180 && finalLng <= 180) {
+      if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
         // For GeoJSON and maplibre, order must be [longitude, latitude]
-        console.log(`Final coordinate: [${finalLng}, ${finalLat}]`);
-        coordinates.push([finalLng, finalLat]);
+        console.log(`Final coordinate: [${longitude}, ${latitude}]`);
+        coordinates.push([longitude, latitude]);
       } else {
-        console.warn(`Skipping invalid coordinate: [${finalLng}, ${finalLat}]`);
+        console.warn(`Skipping invalid coordinate: [${longitude}, ${latitude}]`);
       }
     }
   } catch (error) {
@@ -82,6 +80,8 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
   if (coordinates.length > 0) {
     console.log("Decoded first coordinate:", coordinates[0]);
     console.log("Decoded last coordinate:", coordinates[coordinates.length - 1]);
+  } else {
+    console.warn("No valid coordinates decoded from polyline");
   }
 
   return coordinates;

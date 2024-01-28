@@ -37,12 +37,13 @@ export const addPrimaryPolyline = (
 
   try {
     // Log all coordinates for debugging
-    console.log("All coordinates:", JSON.stringify(coordinates));
+    console.log("First few coordinates:", JSON.stringify(coordinates.slice(0, 5)));
+    console.log("Last few coordinates:", JSON.stringify(coordinates.slice(-5)));
     
-    // Check for coordinates in unusual places (like the sea)
+    // Calculate center point to help with debugging
     const avgLng = coordinates.reduce((sum, coord) => sum + coord[0], 0) / coordinates.length;
     const avgLat = coordinates.reduce((sum, coord) => sum + coord[1], 0) / coordinates.length;
-    console.log(`Average position: [${avgLng}, ${avgLat}]`);
+    console.log(`Average position: [${avgLng.toFixed(4)}, ${avgLat.toFixed(4)}]`);
     
     // Add the new source and layer
     map.addSource(sourceId, {
@@ -71,36 +72,50 @@ export const addPrimaryPolyline = (
       }
     });
 
-    // Create and extend bounds
-    const bounds = new maplibregl.LngLatBounds();
-    let validCoords = false;
-    
-    coordinates.forEach(coord => {
-      if (Array.isArray(coord) && coord.length === 2 && 
-          !isNaN(coord[0]) && !isNaN(coord[1])) {
-        bounds.extend(coord as [number, number]);
-        validCoords = true;
-      }
-    });
-    
-    if (validCoords && !bounds.isEmpty()) {
-      console.log("Fitting to bounds:", bounds.toString());
+    // Create bounds for visible map area
+    if (coordinates.length > 0) {
+      const bounds = new maplibregl.LngLatBounds();
+      let validCoords = false;
       
-      // Use immediate bounds fitting with no animation for consistent behavior
-      map.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 15,
-        duration: 0 // No animation for immediate display
-      });
-    } else if (coordinates.length === 1) {
-      // If we have just one coordinate, center immediately
-      console.log("Centering on single coordinate:", coordinates[0]);
-      map.jumpTo({
-        center: coordinates[0],
-        zoom: 14
-      });
-    } else {
-      console.warn("No valid coordinates found for bounds calculation");
+      for (const coord of coordinates) {
+        if (Array.isArray(coord) && coord.length === 2 && 
+            !isNaN(coord[0]) && !isNaN(coord[1]) &&
+            Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90) {
+          bounds.extend(coord as [number, number]);
+          validCoords = true;
+        }
+      }
+      
+      if (validCoords) {
+        console.log("Fitting to bounds:", bounds.toString());
+        console.log("NE:", bounds.getNorthEast().toString());
+        console.log("SW:", bounds.getSouthWest().toString());
+        
+        // Use immediate bounds fitting with padding and no animation
+        map.fitBounds(bounds, {
+          padding: 50,
+          maxZoom: 15,
+          duration: 0 // No animation for immediate display
+        });
+      } else if (coordinates.length === 1) {
+        // If we have just one coordinate, center immediately
+        console.log("Centering on single coordinate:", coordinates[0]);
+        map.jumpTo({
+          center: coordinates[0],
+          zoom: 14
+        });
+      } else {
+        console.warn("No valid coordinates found for bounds calculation");
+        
+        // Last resort: just try to center on the first coordinate
+        if (coordinates[0] && coordinates[0].length === 2) {
+          console.log("Emergency centering on first coordinate:", coordinates[0]);
+          map.jumpTo({
+            center: coordinates[0],
+            zoom: 10
+          });
+        }
+      }
     }
   } catch (error) {
     console.error("Error adding polyline to map:", error);
