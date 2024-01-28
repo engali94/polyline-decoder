@@ -1,4 +1,3 @@
-
 // Google Polyline decoder implementation
 export function decodePolyline(encoded: string, precision: number = 5): [number, number][] {
   if (!encoded || encoded.length === 0) {
@@ -42,46 +41,93 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
       const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
       lng += dlng;
 
-      // Google's polyline format is lat,lng
+      // IMPORTANT: Google's polyline format is lat,lng but we need to return [lng,lat] for MapLibre
       let latitude = lat / factor;
       let longitude = lng / factor;
       
       console.log(`Raw decoded point: lat=${latitude}, lng=${longitude}`);
       
-      // Handle potentially invalid values caused by encoding issues
-      // For polylines where values seem to be scaled up incorrectly (common for some Saudi Arabia polylines)
-      if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
-        // Try to determine if these are Saudi Arabia coordinates with scaling issues
-        // Riyadh is roughly at 24.7N, 46.7E
-        const scaleFactor = 10;
+      // Handle special cases for Saudi Arabia regions where coordinates might use different scaling
+      // Saudi Arabia is roughly at latitude 24-25 and longitude 46-47
+      
+      // Case 1: Properly scaled coordinates that still need to be returned as [lng, lat]
+      if (latitude >= 20 && latitude <= 30 && longitude >= 40 && longitude <= 50) {
+        console.log("✅ Valid Saudi Arabia coordinates detected");
+        coordinates.push([longitude, latitude]);
+      } 
+      // Case 2: Coordinates are flipped (lng is in lat position and vice versa)
+      else if (longitude >= 20 && longitude <= 30 && latitude >= 40 && latitude <= 50) {
+        console.log("🔄 Flipped Saudi Arabia coordinates detected - correcting order");
+        // Swap them to correct order [lng, lat]
+        coordinates.push([latitude, longitude]);
+      }
+      // Case 3: Coordinates might be scaled up incorrectly
+      else if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+        // Try to detect common scaling issues
+        const scaleFactor1 = 10;  // Common scaling issue
+        const scaleFactor2 = 100; // Less common but possible
         
-        if (Math.abs(latitude) > 200 && Math.abs(latitude) < 300 && 
-            Math.abs(longitude) > 400 && Math.abs(longitude) < 500) {
-          console.log("Detected likely Saudi Arabia coordinates with scaling issue");
-          latitude = latitude / scaleFactor;
-          longitude = longitude / scaleFactor;
-          console.log(`Scaled coordinates: lat=${latitude}, lng=${longitude}`);
+        const testLat1 = latitude / scaleFactor1;
+        const testLng1 = longitude / scaleFactor1;
+        const testLat2 = latitude / scaleFactor2;
+        const testLng2 = longitude / scaleFactor2;
+        
+        // Check if scaling down by 10 makes sense for Saudi Arabia
+        if (testLat1 >= 20 && testLat1 <= 30 && testLng1 >= 40 && testLng1 <= 50) {
+          console.log(`🔍 Scaled coordinates (÷${scaleFactor1}) detected for Saudi Arabia`);
+          coordinates.push([testLng1, testLat1]);
+        }
+        // Check if scaling down by 100 makes sense for Saudi Arabia
+        else if (testLat2 >= 20 && testLat2 <= 30 && testLng2 >= 40 && testLng2 <= 50) {
+          console.log(`🔍 Scaled coordinates (÷${scaleFactor2}) detected for Saudi Arabia`);
+          coordinates.push([testLng2, testLat2]);
+        }
+        // If scaled flipped coordinates
+        else if (testLng1 >= 20 && testLng1 <= 30 && testLat1 >= 40 && testLat1 <= 50) {
+          console.log(`🔄🔍 Flipped and scaled coordinates (÷${scaleFactor1}) detected`);
+          coordinates.push([testLat1, testLng1]);
+        }
+        else if (testLng2 >= 20 && testLng2 <= 30 && testLat2 >= 40 && testLat2 <= 50) {
+          console.log(`🔄🔍 Flipped and scaled coordinates (÷${scaleFactor2}) detected`);
+          coordinates.push([testLat2, testLng2]);
+        }
+        else {
+          console.warn(`⚠️ Invalid coordinate after scaling attempts: [${longitude}, ${latitude}]`);
         }
       }
-      
-      // Ensure coordinates are within valid range
-      if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
-        // For GeoJSON and maplibre, order must be [longitude, latitude]
-        console.log(`Final coordinate: [${longitude}, ${latitude}]`);
+      // Case 4: Standard valid coordinates anywhere else in the world
+      else if (Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
+        console.log(`✅ Valid global coordinate: [${longitude}, ${latitude}]`);
         coordinates.push([longitude, latitude]);
-      } else {
-        console.warn(`Skipping invalid coordinate: [${longitude}, ${latitude}]`);
+      }
+      else {
+        console.warn(`⚠️ Invalid coordinate: [${longitude}, ${latitude}]`);
       }
     }
   } catch (error) {
     console.error("Error decoding polyline:", error);
   }
 
+  // Final validation and debug output
   if (coordinates.length > 0) {
-    console.log("Decoded first coordinate:", coordinates[0]);
-    console.log("Decoded last coordinate:", coordinates[coordinates.length - 1]);
+    console.log(`✅ Decoded ${coordinates.length} coordinates successfully`);
+    console.log("First coordinate:", coordinates[0]);
+    console.log("Last coordinate:", coordinates[coordinates.length - 1]);
+    
+    // Detect if coordinates make sense for Saudi Arabia
+    let inSaudiArabia = 0;
+    for (const [lng, lat] of coordinates) {
+      if (lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50) {
+        inSaudiArabia++;
+      }
+    }
+    
+    if (inSaudiArabia > 0) {
+      const percentage = (inSaudiArabia / coordinates.length) * 100;
+      console.log(`🇸🇦 ${percentage.toFixed(1)}% of coordinates are in Saudi Arabia region`);
+    }
   } else {
-    console.warn("No valid coordinates decoded from polyline");
+    console.warn("❌ No valid coordinates decoded from polyline");
   }
 
   return coordinates;

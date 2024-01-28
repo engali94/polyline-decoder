@@ -8,12 +8,13 @@ export const addPrimaryPolyline = (
 ): void => {
   if (isLoading || !coordinates.length) return;
 
-  console.log("Adding primary polyline with", coordinates.length, "points");
-  console.log("Sample coordinates:", coordinates.slice(0, 3));
+  console.log("📍 Adding primary polyline with", coordinates.length, "points");
+  console.log("📍 First few coordinates:", coordinates.slice(0, 3));
+  console.log("📍 Last few coordinates:", coordinates.slice(-3));
 
   // Check if map is loaded and has a style
   if (!map.isStyleLoaded()) {
-    console.log("Map style not loaded yet, waiting...");
+    console.log("🔄 Map style not loaded yet, waiting...");
     map.once('style.load', () => {
       addPrimaryPolyline(map, coordinates, isLoading);
     });
@@ -32,19 +33,10 @@ export const addPrimaryPolyline = (
       map.removeSource(sourceId);
     }
   } catch (error) {
-    console.error("Error removing existing layers:", error);
+    console.error("❌ Error removing existing layers:", error);
   }
 
   try {
-    // Log all coordinates for debugging
-    console.log("First few coordinates:", JSON.stringify(coordinates.slice(0, 5)));
-    console.log("Last few coordinates:", JSON.stringify(coordinates.slice(-5)));
-    
-    // Calculate center point to help with debugging
-    const avgLng = coordinates.reduce((sum, coord) => sum + coord[0], 0) / coordinates.length;
-    const avgLat = coordinates.reduce((sum, coord) => sum + coord[1], 0) / coordinates.length;
-    console.log(`Average position: [${avgLng.toFixed(4)}, ${avgLat.toFixed(4)}]`);
-    
     // Add the new source and layer
     map.addSource(sourceId, {
       type: 'geojson',
@@ -74,50 +66,90 @@ export const addPrimaryPolyline = (
 
     // Create bounds for visible map area
     if (coordinates.length > 0) {
-      const bounds = new maplibregl.LngLatBounds();
-      let validCoords = false;
+      // For Saudi Arabia, set a fixed default view if coordinates are in that region
+      const isSaudiArabia = coordinates.some(([lng, lat]) => 
+        lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50
+      );
       
-      for (const coord of coordinates) {
-        if (Array.isArray(coord) && coord.length === 2 && 
-            !isNaN(coord[0]) && !isNaN(coord[1]) &&
-            Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90) {
-          bounds.extend(coord as [number, number]);
-          validCoords = true;
-        }
-      }
-      
-      if (validCoords) {
-        console.log("Fitting to bounds:", bounds.toString());
-        console.log("NE:", bounds.getNorthEast().toString());
-        console.log("SW:", bounds.getSouthWest().toString());
-        
-        // Use immediate bounds fitting with padding and no animation
-        map.fitBounds(bounds, {
-          padding: 50,
-          maxZoom: 15,
-          duration: 0 // No animation for immediate display
-        });
-      } else if (coordinates.length === 1) {
-        // If we have just one coordinate, center immediately
-        console.log("Centering on single coordinate:", coordinates[0]);
+      if (isSaudiArabia) {
+        console.log("🇸🇦 Saudi Arabia coordinates detected - using optimized view");
+        // Center on Riyadh area
         map.jumpTo({
-          center: coordinates[0],
-          zoom: 14
+          center: [46.7, 24.7],
+          zoom: 8
+        });
+        
+        // Then fit bounds with more padding
+        const bounds = new maplibregl.LngLatBounds();
+        for (const coord of coordinates) {
+          bounds.extend(coord as [number, number]);
+        }
+        
+        // Use a longer duration for the smooth transition after initial center
+        map.fitBounds(bounds, {
+          padding: 100,
+          maxZoom: 14,
+          duration: 500
         });
       } else {
-        console.warn("No valid coordinates found for bounds calculation");
+        // Regular worldwide coordinates
+        const bounds = new maplibregl.LngLatBounds();
+        let validCoords = false;
         
-        // Last resort: just try to center on the first coordinate
-        if (coordinates[0] && coordinates[0].length === 2) {
-          console.log("Emergency centering on first coordinate:", coordinates[0]);
+        for (const coord of coordinates) {
+          if (Array.isArray(coord) && coord.length === 2 && 
+              !isNaN(coord[0]) && !isNaN(coord[1]) &&
+              Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90) {
+            bounds.extend(coord as [number, number]);
+            validCoords = true;
+          }
+        }
+        
+        if (validCoords) {
+          console.log("🗺️ Fitting to bounds:", bounds.toString());
+          
+          // Immediately jump to the approximate center first
+          const center = [
+            (bounds.getEast() + bounds.getWest()) / 2,
+            (bounds.getNorth() + bounds.getSouth()) / 2
+          ];
+          map.jumpTo({
+            center: center as [number, number],
+            zoom: 7
+          });
+          
+          // Then fit bounds with a short animation
+          map.fitBounds(bounds, {
+            padding: 50,
+            maxZoom: 15,
+            duration: 500
+          });
+        } else if (coordinates.length === 1) {
+          // If we have just one coordinate, center immediately
+          console.log("📍 Centering on single coordinate:", coordinates[0]);
           map.jumpTo({
             center: coordinates[0],
-            zoom: 10
+            zoom: 14
           });
         }
       }
     }
+    
+    // Add markers at start and end of route for better visibility
+    if (coordinates.length >= 2) {
+      // Start marker (green)
+      new maplibregl.Marker({color: '#10b981'})
+        .setLngLat(coordinates[0])
+        .addTo(map);
+      
+      // End marker (red)
+      new maplibregl.Marker({color: '#ef4444'})
+        .setLngLat(coordinates[coordinates.length - 1])
+        .addTo(map);
+      
+      console.log("🚩 Added start/end markers to map");
+    }
   } catch (error) {
-    console.error("Error adding polyline to map:", error);
+    console.error("❌ Error adding polyline to map:", error);
   }
 };
