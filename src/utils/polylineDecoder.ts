@@ -42,19 +42,37 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
       const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
       lng += dlng;
 
-      // Google's polyline format returns coordinates as lat,lng
-      // but GeoJSON and maplibre-gl expect coords as [lng, lat]
+      // IMPORTANT: Google's polyline format has lat,lng but we need lng,lat for GeoJSON
       const latitude = lat / factor;
       const longitude = lng / factor;
       
-      console.log(`Decoded coordinate: [${longitude}, ${latitude}]`);
+      console.log(`Raw decoded point: lat=${latitude}, lng=${longitude}`);
       
-      // Validate coordinates before adding - check reasonable values
-      if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
-        // Important: Use [longitude, latitude] order for GeoJSON
-        coordinates.push([longitude, latitude]);
+      // Check for sign flipped coordinates - sometimes latitude and longitude get swapped
+      let finalLng = longitude;
+      let finalLat = latitude;
+      
+      // If coordinates are likely in Saudi Arabia (around Riyadh), we don't need to flip
+      // Riyadh is roughly at 24.7N, 46.7E
+      const isNearRiyadh = 
+        (Math.abs(latitude - 24.7) < 5 && Math.abs(longitude - 46.7) < 5) || 
+        (Math.abs(longitude - 24.7) < 5 && Math.abs(latitude - 46.7) < 5);
+      
+      // If we detect possible flipped coordinates
+      if (isNearRiyadh && Math.abs(longitude) < 90 && Math.abs(latitude) > 90) {
+        // Coordinates might be flipped
+        console.log("Detected possible flipped coordinates, correcting");
+        finalLng = latitude;
+        finalLat = longitude;
+      }
+      
+      // Ensure coordinates are within valid range
+      if (finalLat >= -90 && finalLat <= 90 && finalLng >= -180 && finalLng <= 180) {
+        // For GeoJSON and maplibre, order must be [longitude, latitude]
+        console.log(`Final coordinate: [${finalLng}, ${finalLat}]`);
+        coordinates.push([finalLng, finalLat]);
       } else {
-        console.warn(`Skipping invalid coordinate: [${longitude}, ${latitude}]`);
+        console.warn(`Skipping invalid coordinate: [${finalLng}, ${finalLat}]`);
       }
     }
   } catch (error) {
