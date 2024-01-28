@@ -60,35 +60,35 @@ export const addPrimaryPolyline = (
       },
       paint: {
         'line-color': '#3b82f6',
-        'line-width': 3
+        'line-width': 4
       }
     });
 
     // Create bounds for visible map area
     if (coordinates.length > 0) {
-      // For Saudi Arabia, set a fixed default view if coordinates are in that region
+      // Detect if these are likely Saudi Arabia coordinates
       const isSaudiArabia = coordinates.some(([lng, lat]) => 
         lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50
       );
       
       if (isSaudiArabia) {
         console.log("🇸🇦 Saudi Arabia coordinates detected - using optimized view");
-        // Center on Riyadh area
+        
+        // Immediately center the map on the first coordinate
         map.jumpTo({
-          center: [46.7, 24.7],
-          zoom: 8
+          center: coordinates[0],
+          zoom: 14  // Start with a closer zoom
         });
         
-        // Then fit bounds with more padding
+        // Then fit bounds with padding
         const bounds = new maplibregl.LngLatBounds();
         for (const coord of coordinates) {
           bounds.extend(coord as [number, number]);
         }
         
-        // Use a longer duration for the smooth transition after initial center
         map.fitBounds(bounds, {
-          padding: 100,
-          maxZoom: 14,
+          padding: 80,
+          maxZoom: 15,
           duration: 500
         });
       } else {
