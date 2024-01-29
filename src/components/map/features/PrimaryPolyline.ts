@@ -21,6 +21,14 @@ export const addPrimaryPolyline = (
     return;
   }
 
+  // Cleanup: Remove any existing markers before adding new ones
+  const markers = document.querySelectorAll('.maplibregl-marker');
+  markers.forEach(marker => {
+    if (marker.parentElement && marker.parentElement.isEqualNode(map.getContainer())) {
+      marker.remove();
+    }
+  });
+
   const sourceId = 'polyline-source';
   const layerId = 'polyline-layer';
 

@@ -107,76 +107,114 @@ const MapEffects: React.FC<MapEffectsProps> = ({
 
   // Second map effect for side-by-side view
   useEffect(() => {
-    console.log("Side-by-side effect triggered:", {
-      hasSecondMap: !!secondMap.current,
-      splitViewActive,
-      comparisonMode,
-      coordinatesLength: coordinates.length,
-      secondaryCoordinatesLength: secondaryCoordinates.length
-    });
-
     if (!secondMap.current) return;
     if (!splitViewActive || !comparisonMode) return;
     if (secondaryCoordinates.length === 0) return;
 
-    const addPolylinesToMaps = () => {
-      console.log("Adding polylines to maps in side-by-side view");
-      
-      // Add primary polyline to first map
-      if (map.current && map.current.loaded()) {
-        addPrimaryPolyline(map.current, coordinates, false);
+    console.log("Initializing side-by-side view", {
+      hasSecondMap: !!secondMap.current,
+      splitViewActive,
+      comparisonType,
+      secondaryCoordinatesLength: secondaryCoordinates.length
+    });
+
+    const addPolylinesToSecondMap = () => {
+      if (!secondMap.current || !secondMap.current.loaded()) {
+        console.log("Second map not loaded yet, will retry");
+        setTimeout(() => addPolylinesToSecondMap(), 100);
+        return;
       }
-      
-      // Clear any existing layers on second map
+
       try {
-        if (secondMap.current && secondMap.current.getSource('second-polyline-source')) {
+        // Clean up any existing layers on second map
+        if (secondMap.current.getSource('second-polyline-source')) {
           secondMap.current.removeLayer('second-polyline-layer');
           secondMap.current.removeSource('second-polyline-source');
         }
-      } catch (error) {
-        console.error("Error cleaning up second map:", error);
-      }
-      
-      if (!secondMap.current) return;
-      
-      console.log("Adding secondary polyline to second map:", secondaryCoordinates.length, "points");
+        
+        // Remove any markers that might exist
+        const markers = document.querySelectorAll('.maplibregl-marker');
+        markers.forEach(marker => {
+          if (marker.parentElement && marker.parentElement.classList.contains('map-container') && 
+              !marker.parentElement.isEqualNode(map.current?.getContainer())) {
+            marker.remove();
+          }
+        });
+        
+        console.log("Adding secondary polyline to second map:", secondaryCoordinates.length);
+        
+        // Add the secondary polyline to the second map
+        secondMap.current.addSource('second-polyline-source', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: secondaryCoordinates
+            }
+          }
+        });
 
-      // Add the GeoJSON source for the secondary polyline
-      secondMap.current.addSource('second-polyline-source', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'LineString',
-            coordinates: secondaryCoordinates
+        secondMap.current.addLayer({
+          id: 'second-polyline-layer',
+          type: 'line',
+          source: 'second-polyline-source',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#10b981',
+            'line-width': 4
+          }
+        });
+        
+        // Add markers at start and end of route for better visibility
+        if (secondaryCoordinates.length >= 2) {
+          // Start marker (green)
+          new maplibregl.Marker({color: '#10b981'})
+            .setLngLat(secondaryCoordinates[0])
+            .addTo(secondMap.current);
+          
+          // End marker (red)
+          new maplibregl.Marker({color: '#ef4444'})
+            .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
+            .addTo(secondMap.current);
+          
+          console.log("Added start/end markers to second map");
+        }
+        
+        // Create bounds for the second map
+        if (secondaryCoordinates.length > 1) {
+          const bounds = new maplibregl.LngLatBounds();
+          let validCoords = false;
+          
+          for (const coord of secondaryCoordinates) {
+            if (Array.isArray(coord) && coord.length === 2 && 
+                !isNaN(coord[0]) && !isNaN(coord[1]) &&
+                Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90) {
+              bounds.extend(coord as [number, number]);
+              validCoords = true;
+            }
+          }
+          
+          if (validCoords) {
+            console.log("Fitting second map to bounds:", bounds.toString());
+            secondMap.current.fitBounds(bounds, {
+              padding: 50,
+              maxZoom: 15,
+              duration: 500
+            });
           }
         }
-      });
-
-      // Add the line layer for the secondary polyline
-      secondMap.current.addLayer({
-        id: 'second-polyline-layer',
-        type: 'line',
-        source: 'second-polyline-source',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#10b981',
-          'line-width': 3
-        }
-      });
+      } catch (error) {
+        console.error("Error in side-by-side view:", error);
+      }
     };
 
-    // Add polylines to both maps when they're loaded
-    if (secondMap.current.loaded()) {
-      addPolylinesToMaps();
-    } else {
-      console.log("Second map not loaded, waiting for load event");
-      secondMap.current.once('load', addPolylinesToMaps);
-    }
+    // Use timeout to ensure the map is fully loaded
+    setTimeout(addPolylinesToSecondMap, 300);
 
     // Cleanup function
     return () => {
@@ -191,7 +229,7 @@ const MapEffects: React.FC<MapEffectsProps> = ({
         }
       }
     };
-  }, [secondaryCoordinates, coordinates, splitViewActive, secondMap, map, comparisonMode]);
+  }, [secondaryCoordinates, secondMap, splitViewActive, comparisonMode, comparisonType]);
 
   return null;
 };
