@@ -44,6 +44,21 @@ export const addPrimaryPolyline = (
     console.error("❌ Error removing existing layers:", error);
   }
 
+  // Validate coordinates before adding
+  const validCoords = coordinates.filter(coord => 
+    Array.isArray(coord) && 
+    coord.length === 2 && 
+    !isNaN(coord[0]) && 
+    !isNaN(coord[1]) &&
+    Math.abs(coord[0]) <= 180 && 
+    Math.abs(coord[1]) <= 90
+  );
+
+  if (validCoords.length === 0) {
+    console.error("❌ No valid coordinates for primary polyline");
+    return;
+  }
+
   try {
     // Add the new source and layer
     map.addSource(sourceId, {
@@ -53,7 +68,7 @@ export const addPrimaryPolyline = (
         properties: {},
         geometry: {
           type: 'LineString',
-          coordinates: coordinates
+          coordinates: validCoords
         }
       }
     });
@@ -73,9 +88,9 @@ export const addPrimaryPolyline = (
     });
 
     // Create bounds for visible map area
-    if (coordinates.length > 0) {
+    if (validCoords.length > 0) {
       // Detect if these are likely Saudi Arabia coordinates
-      const isSaudiArabia = coordinates.some(([lng, lat]) => 
+      const isSaudiArabia = validCoords.some(([lng, lat]) => 
         lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50
       );
       
@@ -84,14 +99,14 @@ export const addPrimaryPolyline = (
         
         // Immediately center the map on the first coordinate
         map.jumpTo({
-          center: coordinates[0],
+          center: validCoords[0],
           zoom: 14  // Start with a closer zoom
         });
         
         // Then fit bounds with padding
         const bounds = new maplibregl.LngLatBounds();
-        for (const coord of coordinates) {
-          bounds.extend(coord as [number, number]);
+        for (const coord of validCoords) {
+          bounds.extend(coord);
         }
         
         map.fitBounds(bounds, {
@@ -102,60 +117,49 @@ export const addPrimaryPolyline = (
       } else {
         // Regular worldwide coordinates
         const bounds = new maplibregl.LngLatBounds();
-        let validCoords = false;
         
-        for (const coord of coordinates) {
-          if (Array.isArray(coord) && coord.length === 2 && 
-              !isNaN(coord[0]) && !isNaN(coord[1]) &&
-              Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90) {
-            bounds.extend(coord as [number, number]);
-            validCoords = true;
-          }
+        for (const coord of validCoords) {
+          bounds.extend(coord);
         }
         
-        if (validCoords) {
-          console.log("🗺️ Fitting to bounds:", bounds.toString());
-          
-          // Immediately jump to the approximate center first
-          const center = [
-            (bounds.getEast() + bounds.getWest()) / 2,
-            (bounds.getNorth() + bounds.getSouth()) / 2
-          ];
-          map.jumpTo({
-            center: center as [number, number],
-            zoom: 7
-          });
-          
-          // Then fit bounds with a short animation
-          map.fitBounds(bounds, {
-            padding: 50,
-            maxZoom: 15,
-            duration: 500
-          });
-        } else if (coordinates.length === 1) {
-          // If we have just one coordinate, center immediately
-          console.log("📍 Centering on single coordinate:", coordinates[0]);
-          map.jumpTo({
-            center: coordinates[0],
-            zoom: 14
-          });
-        }
+        console.log("🗺️ Fitting to bounds:", bounds.toString());
+        
+        // Immediately jump to the approximate center first
+        const center = [
+          (bounds.getEast() + bounds.getWest()) / 2,
+          (bounds.getNorth() + bounds.getSouth()) / 2
+        ];
+        map.jumpTo({
+          center: center as [number, number],
+          zoom: 7
+        });
+        
+        // Then fit bounds with a short animation
+        map.fitBounds(bounds, {
+          padding: 50,
+          maxZoom: 15,
+          duration: 500
+        });
       }
     }
     
     // Add markers at start and end of route for better visibility
-    if (coordinates.length >= 2) {
-      // Start marker (green)
-      new maplibregl.Marker({color: '#10b981'})
-        .setLngLat(coordinates[0])
-        .addTo(map);
-      
-      // End marker (red)
-      new maplibregl.Marker({color: '#ef4444'})
-        .setLngLat(coordinates[coordinates.length - 1])
-        .addTo(map);
-      
-      console.log("🚩 Added start/end markers to map");
+    if (validCoords.length >= 2) {
+      try {
+        // Start marker (green)
+        new maplibregl.Marker({color: '#10b981'})
+          .setLngLat(validCoords[0])
+          .addTo(map);
+        
+        // End marker (red)
+        new maplibregl.Marker({color: '#ef4444'})
+          .setLngLat(validCoords[validCoords.length - 1])
+          .addTo(map);
+        
+        console.log("🚩 Added start/end markers to map");
+      } catch (err) {
+        console.error("❌ Error adding markers:", err);
+      }
     }
   } catch (error) {
     console.error("❌ Error adding polyline to map:", error);

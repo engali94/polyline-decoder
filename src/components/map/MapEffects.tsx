@@ -79,7 +79,7 @@ const MapEffects: React.FC<MapEffectsProps> = ({
     if (map.current.loaded()) {
       onMapLoad();
     } else {
-      map.current.once('load', onMapLoad);
+      map.current.once('style.load', onMapLoad);
     }
 
     // Re-render when tab changes - essential fix for disappearing polylines
@@ -107,8 +107,7 @@ const MapEffects: React.FC<MapEffectsProps> = ({
 
   // Second map effect for side-by-side view
   useEffect(() => {
-    if (!secondMap.current) return;
-    if (!splitViewActive || !comparisonMode) return;
+    if (!comparisonMode || !splitViewActive) return;
     if (secondaryCoordinates.length === 0) return;
 
     console.log("Initializing side-by-side view", {
@@ -127,10 +126,7 @@ const MapEffects: React.FC<MapEffectsProps> = ({
 
       try {
         // Clean up any existing layers on second map
-        if (secondMap.current.getSource('second-polyline-source')) {
-          secondMap.current.removeLayer('second-polyline-layer');
-          secondMap.current.removeSource('second-polyline-source');
-        }
+        cleanupMapLayers(secondMap.current, 'sideBySide');
         
         // Remove any markers that might exist
         const markers = document.querySelectorAll('.maplibregl-marker');
@@ -143,6 +139,21 @@ const MapEffects: React.FC<MapEffectsProps> = ({
         
         console.log("Adding secondary polyline to second map:", secondaryCoordinates.length);
         
+        // Validate coordinates before adding
+        const validSecondaryCoords = secondaryCoordinates.filter(coord => 
+          Array.isArray(coord) && 
+          coord.length === 2 && 
+          !isNaN(coord[0]) && 
+          !isNaN(coord[1]) &&
+          Math.abs(coord[0]) <= 180 && 
+          Math.abs(coord[1]) <= 90
+        );
+        
+        if (validSecondaryCoords.length === 0) {
+          console.error("No valid coordinates for secondary polyline");
+          return;
+        }
+        
         // Add the secondary polyline to the second map
         secondMap.current.addSource('second-polyline-source', {
           type: 'geojson',
@@ -151,7 +162,7 @@ const MapEffects: React.FC<MapEffectsProps> = ({
             properties: {},
             geometry: {
               type: 'LineString',
-              coordinates: secondaryCoordinates
+              coordinates: validSecondaryCoords
             }
           }
         });
@@ -170,43 +181,39 @@ const MapEffects: React.FC<MapEffectsProps> = ({
           }
         });
         
-        // Add markers at start and end of route for better visibility
-        if (secondaryCoordinates.length >= 2) {
-          // Start marker (green)
-          new maplibregl.Marker({color: '#10b981'})
-            .setLngLat(secondaryCoordinates[0])
-            .addTo(secondMap.current);
-          
-          // End marker (red)
-          new maplibregl.Marker({color: '#ef4444'})
-            .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
-            .addTo(secondMap.current);
-          
-          console.log("Added start/end markers to second map");
+        // Add markers at start and end of route only if valid
+        if (validSecondaryCoords.length >= 2) {
+          try {
+            // Start marker (green)
+            new maplibregl.Marker({color: '#10b981'})
+              .setLngLat(validSecondaryCoords[0])
+              .addTo(secondMap.current);
+            
+            // End marker (red)
+            new maplibregl.Marker({color: '#ef4444'})
+              .setLngLat(validSecondaryCoords[validSecondaryCoords.length - 1])
+              .addTo(secondMap.current);
+            
+            console.log("Added start/end markers to second map");
+          } catch (err) {
+            console.error("Error adding markers:", err);
+          }
         }
         
         // Create bounds for the second map
-        if (secondaryCoordinates.length > 1) {
+        if (validSecondaryCoords.length > 1) {
           const bounds = new maplibregl.LngLatBounds();
-          let validCoords = false;
           
-          for (const coord of secondaryCoordinates) {
-            if (Array.isArray(coord) && coord.length === 2 && 
-                !isNaN(coord[0]) && !isNaN(coord[1]) &&
-                Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90) {
-              bounds.extend(coord as [number, number]);
-              validCoords = true;
-            }
+          for (const coord of validSecondaryCoords) {
+            bounds.extend(coord);
           }
           
-          if (validCoords) {
-            console.log("Fitting second map to bounds:", bounds.toString());
-            secondMap.current.fitBounds(bounds, {
-              padding: 50,
-              maxZoom: 15,
-              duration: 500
-            });
-          }
+          console.log("Fitting second map to bounds:", bounds.toString());
+          secondMap.current.fitBounds(bounds, {
+            padding: 50,
+            maxZoom: 15,
+            duration: 500
+          });
         }
       } catch (error) {
         console.error("Error in side-by-side view:", error);
@@ -216,20 +223,65 @@ const MapEffects: React.FC<MapEffectsProps> = ({
     // Use timeout to ensure the map is fully loaded
     setTimeout(addPolylinesToSecondMap, 300);
 
+    // Add event listener for auto-align
+    const handleAutoAlign = (event: Event) => {
+      if (!secondMap.current || !map.current) return;
+      
+      const customEvent = event as CustomEvent;
+      const threshold = customEvent.detail?.threshold || 20;
+      
+      console.log("Auto-aligning polylines with threshold:", threshold);
+      
+      // Here you would implement actual alignment algorithm
+      // For now, we'll just fit both maps to the same bounds to show alignment
+      if (map.current && secondMap.current && coordinates.length && secondaryCoordinates.length) {
+        try {
+          const bounds = new maplibregl.LngLatBounds();
+          
+          // Add all coordinates to the bounds
+          for (const coord of coordinates) {
+            if (Array.isArray(coord) && coord.length === 2 &&
+                !isNaN(coord[0]) && !isNaN(coord[1]) &&
+                Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90) {
+              bounds.extend(coord);
+            }
+          }
+          
+          // If we have valid bounds, fit both maps to them
+          if (!bounds.isEmpty()) {
+            map.current.fitBounds(bounds, {
+              padding: 50,
+              maxZoom: 15,
+              duration: 500
+            });
+            
+            secondMap.current.fitBounds(bounds, {
+              padding: 50,
+              maxZoom: 15,
+              duration: 500
+            });
+          }
+        } catch (error) {
+          console.error("Error in auto-align:", error);
+        }
+      }
+    };
+    
+    window.addEventListener('auto-align-polylines', handleAutoAlign);
+
     // Cleanup function
     return () => {
+      window.removeEventListener('auto-align-polylines', handleAutoAlign);
+      
       if (secondMap.current) {
         try {
-          if (secondMap.current.getSource('second-polyline-source')) {
-            secondMap.current.removeLayer('second-polyline-layer');
-            secondMap.current.removeSource('second-polyline-source');
-          }
+          cleanupMapLayers(secondMap.current, 'sideBySide');
         } catch (error) {
           console.error("Error in cleanup of second map effect:", error);
         }
       }
     };
-  }, [secondaryCoordinates, secondMap, splitViewActive, comparisonMode, comparisonType]);
+  }, [secondaryCoordinates, secondMap, splitViewActive, comparisonMode, comparisonType, coordinates, map]);
 
   return null;
 };

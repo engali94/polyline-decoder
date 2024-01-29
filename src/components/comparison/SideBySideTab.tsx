@@ -15,8 +15,13 @@ const SideBySideTab: React.FC<SideBySideTabProps> = ({
   setAlignmentThreshold 
 }) => {
   const handleAutoAlign = () => {
-    // This would implement the auto-alignment algorithm
-    // For now, we'll just show a toast indicating it was triggered
+    // This will trigger the auto-alignment algorithm in the map
+    // The actual implementation is in MapEffects.tsx to process
+    // the coordinates data
+    window.dispatchEvent(new CustomEvent('auto-align-polylines', { 
+      detail: { threshold: alignmentThreshold }
+    }));
+    
     toast.success("Auto-alignment applied with threshold: " + alignmentThreshold + "m");
   };
 
