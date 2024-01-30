@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { 
   addPrimaryPolyline, 
@@ -7,6 +7,7 @@ import {
   addDifferentialAnalysis,
   cleanupMapLayers
 } from './features';
+import { toast } from 'sonner';
 
 interface MapEffectsProps {
   map: React.MutableRefObject<maplibregl.Map | null>;
@@ -22,7 +23,7 @@ interface MapEffectsProps {
   splitViewActive: boolean;
 }
 
-const MapEffects: React.FC<MapEffectsProps> = ({
+const MapEffects = ({
   map,
   secondMap,
   coordinates,
@@ -34,10 +35,78 @@ const MapEffects: React.FC<MapEffectsProps> = ({
   showDivergence,
   showIntersections,
   splitViewActive
-}) => {
+}: MapEffectsProps) => {
+  // Validate coordinates to prevent map errors
+  const validCoordinates = coordinates && coordinates.length > 0 && 
+    coordinates.every(coord => Array.isArray(coord) && coord.length === 2);
+  
+  const validSecondaryCoords = secondaryCoordinates && secondaryCoordinates.length > 0 && 
+    secondaryCoordinates.every(coord => Array.isArray(coord) && coord.length === 2);
+
+  // Auto-alignment handler
+  const handleAutoAlign = useCallback((event: CustomEvent) => {
+    if (!map.current || !secondMap.current) return;
+    if (comparisonType !== 'sideBySide' || !splitViewActive) return;
+    
+    const threshold = event.detail?.threshold || 20;
+    
+    try {
+      // Check if both maps have valid sources
+      const primarySource = map.current.getSource('polyline-source');
+      const secondarySource = secondMap.current.getSource('second-polyline-source');
+      
+      if (!primarySource || !secondarySource) {
+        console.warn('Cannot auto-align: One or both sources are missing');
+        return;
+      }
+      
+      // Create bounds with all coordinates
+      const bounds = new maplibregl.LngLatBounds();
+      
+      // Add primary coordinates to bounds
+      if (validCoordinates) {
+        coordinates.forEach(coord => bounds.extend(coord as maplibregl.LngLatLike));
+      }
+      
+      // Add secondary coordinates to bounds
+      if (validSecondaryCoords) {
+        secondaryCoordinates.forEach(coord => bounds.extend(coord as maplibregl.LngLatLike));
+      }
+      
+      // Only proceed if bounds are valid
+      if (bounds.isEmpty()) {
+        toast.error('Cannot align: No valid coordinates');
+        return;
+      }
+      
+      // Fit both maps to the same bounds
+      const options = { 
+        padding: 50, 
+        maxZoom: 16,
+        duration: 800
+      };
+      
+      map.current.fitBounds(bounds, options);
+      secondMap.current.fitBounds(bounds, options);
+      
+      toast.success('Maps aligned successfully');
+    } catch (error) {
+      console.error('Auto-alignment error:', error);
+      toast.error('Error aligning maps');
+    }
+  }, [map, secondMap, coordinates, secondaryCoordinates, comparisonType, splitViewActive]);
+
+  // Set up auto-align event listener
+  useEffect(() => {
+    window.addEventListener('auto-align-maps', handleAutoAlign as EventListener);
+    return () => {
+      window.removeEventListener('auto-align-maps', handleAutoAlign as EventListener);
+    };
+  }, [handleAutoAlign]);
+
   // Primary polyline effect
   useEffect(() => {
-    if (!map.current || isLoading) return;
+    if (!map.current || isLoading || !validCoordinates) return;
 
     const onMapLoad = () => {
       addPrimaryPolyline(map.current!, coordinates, isLoading);
@@ -48,12 +117,12 @@ const MapEffects: React.FC<MapEffectsProps> = ({
     } else {
       map.current.once('load', onMapLoad);
     }
-  }, [coordinates, isLoading, map]);
+  }, [coordinates, isLoading, map, validCoordinates]);
 
   // Secondary polyline and comparison mode effects
   useEffect(() => {
     if (!map.current || isLoading) return;
-    if (!comparisonMode || !secondaryCoordinates.length) return;
+    if (!comparisonMode || !validSecondaryCoords) return;
     if (comparisonType === 'sideBySide' && splitViewActive) return;
 
     const onMapLoad = () => {
@@ -102,7 +171,8 @@ const MapEffects: React.FC<MapEffectsProps> = ({
     splitViewActive,
     coordinates,
     map,
-    isLoading
+    isLoading,
+    validSecondaryCoords
   ]);
 
   // Second map effect for side-by-side view
@@ -117,7 +187,7 @@ const MapEffects: React.FC<MapEffectsProps> = ({
 
     if (!secondMap.current) return;
     if (!splitViewActive || !comparisonMode) return;
-    if (secondaryCoordinates.length === 0) return;
+    if (!validSecondaryCoords) return;
 
     const addPolylinesToMaps = () => {
       console.log("Adding polylines to maps in side-by-side view");
@@ -129,9 +199,11 @@ const MapEffects: React.FC<MapEffectsProps> = ({
       
       // Clear any existing layers on second map
       try {
-        if (secondMap.current && secondMap.current.getSource('second-polyline-source')) {
-          secondMap.current.removeLayer('second-polyline-layer');
-          secondMap.current.removeSource('second-polyline-source');
+        if (secondMap.current) {
+          if (secondMap.current.getSource('second-polyline-source')) {
+            secondMap.current.removeLayer('second-polyline-layer');
+            secondMap.current.removeSource('second-polyline-source');
+          }
         }
       } catch (error) {
         console.error("Error cleaning up second map:", error);
@@ -191,9 +263,19 @@ const MapEffects: React.FC<MapEffectsProps> = ({
         }
       }
     };
-  }, [secondaryCoordinates, coordinates, splitViewActive, secondMap, map, comparisonMode]);
+  }, [
+    secondaryCoordinates, 
+    coordinates, 
+    splitViewActive, 
+    secondMap, 
+    map, 
+    comparisonMode, 
+    validSecondaryCoords
+  ]);
 
   return null;
 };
 
+// Export as both named and default export to ensure compatibility
+export { MapEffects };
 export default MapEffects;

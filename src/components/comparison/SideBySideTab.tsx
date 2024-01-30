@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '../ui/button';
 import { Slider } from '../ui/slider';
 import { AlignHorizontalDistributeCenter } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface SideBySideTabProps {
   alignmentThreshold: number;
@@ -13,6 +14,16 @@ const SideBySideTab: React.FC<SideBySideTabProps> = ({
   alignmentThreshold, 
   setAlignmentThreshold 
 }) => {
+  // Function to trigger alignment
+  const handleAutoAlign = () => {
+    // Create and dispatch custom event for auto-alignment
+    const event = new CustomEvent('auto-align-maps', {
+      detail: { threshold: alignmentThreshold }
+    });
+    window.dispatchEvent(event);
+    toast.success(`Auto-aligned segments with threshold: ${alignmentThreshold}m`);
+  };
+  
   return (
     <div className="flex flex-col gap-2">
       <div className="text-xs">View primary and secondary polylines side by side</div>
@@ -29,7 +40,12 @@ const SideBySideTab: React.FC<SideBySideTabProps> = ({
           step={5}
         />
       </div>
-      <Button size="sm" className="mt-1 bg-secondary/80 text-secondary-foreground hover:bg-secondary/90" variant="secondary">
+      <Button 
+        size="sm" 
+        className="mt-1 bg-secondary/80 text-secondary-foreground hover:bg-secondary/90" 
+        variant="secondary"
+        onClick={handleAutoAlign}
+      >
         <AlignHorizontalDistributeCenter className="mr-1 h-4 w-4" />
         Auto-align Similar Segments
       </Button>

@@ -3,7 +3,7 @@ import React, { useRef, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { Split } from 'lucide-react';
 import { StyleOption } from './StyleSelector';
-import MapEffects from './MapEffects';
+import MapEffects from './MapEffects';  // Using default import
 
 interface MapRenderersProps {
   coordinates: [number, number][];

@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 type ComparisonType = 'overlay' | 'sideBySide' | 'diff';
 
 export function usePolylineComparison() {
-  // Set comparison mode to true by default
-  const [comparisonMode, setComparisonMode] = useState(true);
+  // Set comparison mode to false by default
+  const [comparisonMode, setComparisonMode] = useState(false);
   const [secondaryPolyline, setSecondaryPolyline] = useState('');
   const [secondaryCoordinates, setSecondaryCoordinates] = useState<[number, number][]>([]);
   const [comparisonType, setComparisonType] = useState<ComparisonType>('overlay');
@@ -26,12 +26,17 @@ export function usePolylineComparison() {
       const decodedCoordinates = decodePolyline(secondaryPolyline);
       console.log("Secondary polyline decoded:", decodedCoordinates.length);
       setSecondaryCoordinates(decodedCoordinates);
+      
+      // Auto-enable comparison mode when a secondary polyline is added
+      if (decodedCoordinates.length > 0 && !comparisonMode) {
+        setComparisonMode(true);
+      }
     } catch (error) {
       console.error('Error decoding secondary polyline:', error);
       toast.error('Error decoding secondary polyline');
       setSecondaryCoordinates([]);
     }
-  }, [secondaryPolyline]);
+  }, [secondaryPolyline, comparisonMode]);
 
   const handleComparisonTypeChange = (type: ComparisonType) => {
     console.log("Comparison type changed to:", type);
