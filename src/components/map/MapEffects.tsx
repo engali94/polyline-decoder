@@ -1,9 +1,12 @@
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
-import { toast } from 'sonner';
-import { cleanupMapLayers } from './features/MapCleanup';
-import { addSecondaryPolyline } from './features/SecondaryPolyline';
+import { 
+  addPrimaryPolyline, 
+  addSecondaryPolyline, 
+  addDifferentialAnalysis,
+  cleanupMapLayers
+} from './features';
 
 interface MapEffectsProps {
   map: React.MutableRefObject<maplibregl.Map | null>;
@@ -30,215 +33,167 @@ const MapEffects: React.FC<MapEffectsProps> = ({
   overlayOpacity,
   showDivergence,
   showIntersections,
-  splitViewActive,
+  splitViewActive
 }) => {
-  // Effect for auto-align event listener
+  // Primary polyline effect
   useEffect(() => {
-    const handleAutoAlign = (event: Event) => {
-      const customEvent = event as CustomEvent<{ threshold: number }>;
-      const threshold = customEvent.detail.threshold;
+    if (!map.current || isLoading) return;
 
-      if (!map.current || !secondMap.current || !coordinates.length || !secondaryCoordinates.length) {
-        toast.error("Cannot align: Missing map or path data");
-        return;
-      }
+    const onMapLoad = () => {
+      addPrimaryPolyline(map.current!, coordinates, isLoading);
+    };
 
-      // Auto-align logic would go here
-      toast.success(`Auto-aligned polylines with threshold: ${threshold}m`);
+    if (map.current.loaded()) {
+      onMapLoad();
+    } else {
+      map.current.once('load', onMapLoad);
+    }
+  }, [coordinates, isLoading, map]);
 
-      // Fit bounds to include both polylines
-      if (coordinates.length > 0 && secondaryCoordinates.length > 0) {
-        const bounds = new maplibregl.LngLatBounds();
+  // Secondary polyline and comparison mode effects
+  useEffect(() => {
+    if (!map.current || isLoading) return;
+    if (!comparisonMode || !secondaryCoordinates.length) return;
+    if (comparisonType === 'sideBySide' && splitViewActive) return;
+
+    const onMapLoad = () => {
+      // Clean up previous layers before adding new ones
+      cleanupMapLayers(map.current!, comparisonType);
+      
+      if (comparisonType === 'overlay') {
+        addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
+      } else if (comparisonType === 'diff') {
+        // In diff mode, show both the secondary polyline and the analysis
+        addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
         
-        // Validate coordinates before extending bounds
-        coordinates.forEach(coord => {
-          if (isValidCoordinate(coord)) {
-            bounds.extend([coord[0], coord[1]]);
-          }
-        });
-        
-        secondaryCoordinates.forEach(coord => {
-          if (isValidCoordinate(coord)) {
-            bounds.extend([coord[0], coord[1]]);
-          }
-        });
-
-        if (!bounds.isEmpty()) {
-          map.current.fitBounds(bounds, { padding: 40 });
-          if (secondMap.current) {
-            secondMap.current.fitBounds(bounds, { padding: 40 });
-          }
-        }
+        addDifferentialAnalysis(
+          map.current!,
+          coordinates, 
+          secondaryCoordinates, 
+          showDivergence, 
+          showIntersections
+        );
       }
     };
 
-    window.addEventListener('auto-align-polylines', handleAutoAlign);
+    if (map.current.loaded()) {
+      onMapLoad();
+    } else {
+      map.current.once('load', onMapLoad);
+    }
+
+    // Re-render when tab changes - essential fix for disappearing polylines
     return () => {
-      window.removeEventListener('auto-align-polylines', handleAutoAlign);
+      if (map.current) {
+        cleanupMapLayers(map.current, comparisonType);
+        // Immediately re-add primary polyline to prevent it from disappearing
+        if (coordinates.length > 0) {
+          addPrimaryPolyline(map.current, coordinates, false);
+        }
+      }
     };
-  }, [map, secondMap, coordinates, secondaryCoordinates]);
+  }, [
+    secondaryCoordinates, 
+    comparisonMode, 
+    comparisonType, 
+    overlayOpacity, 
+    showDivergence, 
+    showIntersections, 
+    splitViewActive,
+    coordinates,
+    map,
+    isLoading
+  ]);
 
-  // Helper function to validate coordinates
-  const isValidCoordinate = (coord: [number, number]): boolean => {
-    return Array.isArray(coord) && 
-           coord.length === 2 && 
-           typeof coord[0] === 'number' && 
-           typeof coord[1] === 'number' &&
-           coord[0] >= -180 && 
-           coord[0] <= 180 && 
-           coord[1] >= -90 && 
-           coord[1] <= 90;
-  };
-
-  // Effect for adding polylines to maps
+  // Second map effect for side-by-side view
   useEffect(() => {
-    // Initialize and update maps with polylines
-    if (!map.current) return;
+    console.log("Side-by-side effect triggered:", {
+      hasSecondMap: !!secondMap.current,
+      splitViewActive,
+      comparisonMode,
+      coordinatesLength: coordinates.length,
+      secondaryCoordinatesLength: secondaryCoordinates.length
+    });
 
-    // Clean up existing sources and layers in primary map
-    if (map.current.getSource('route')) {
-      if (map.current.getLayer('route-line')) {
-        map.current.removeLayer('route-line');
-      }
-      map.current.removeSource('route');
-    }
+    if (!secondMap.current) return;
+    if (!splitViewActive || !comparisonMode) return;
+    if (secondaryCoordinates.length === 0) return;
 
-    // Add primary polyline to main map
-    if (coordinates.length > 0) {
-      const validCoordinates = coordinates.filter(isValidCoordinate);
+    const addPolylinesToMaps = () => {
+      console.log("Adding polylines to maps in side-by-side view");
       
-      if (validCoordinates.length > 0) {
-        map.current.addSource('route', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: validCoordinates
-            }
-          }
-        });
-
-        map.current.addLayer({
-          id: 'route-line',
-          type: 'line',
-          source: 'route',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#0070f3',
-            'line-width': 4
-          }
-        });
-
-        // Fit map to polyline bounds
-        const bounds = new maplibregl.LngLatBounds();
-        validCoordinates.forEach(coord => bounds.extend([coord[0], coord[1]]));
-        map.current.fitBounds(bounds, { padding: 40 });
-      }
-    }
-
-    // Handle second map if in split view
-    if (secondMap.current && splitViewActive) {
-      // Clean up existing sources and layers in secondary map
-      if (secondMap.current.getSource('route')) {
-        if (secondMap.current.getLayer('route-line')) {
-          secondMap.current.removeLayer('route-line');
-        }
-        secondMap.current.removeSource('route');
+      // Add primary polyline to first map
+      if (map.current && map.current.loaded()) {
+        addPrimaryPolyline(map.current, coordinates, false);
       }
       
-      if (secondMap.current.getSource('route-second')) {
-        if (secondMap.current.getLayer('route-second-line')) {
-          secondMap.current.removeLayer('route-second-line');
+      // Clear any existing layers on second map
+      try {
+        if (secondMap.current && secondMap.current.getSource('second-polyline-source')) {
+          secondMap.current.removeLayer('second-polyline-layer');
+          secondMap.current.removeSource('second-polyline-source');
         }
-        secondMap.current.removeSource('route-second');
+      } catch (error) {
+        console.error("Error cleaning up second map:", error);
       }
+      
+      if (!secondMap.current) return;
+      
+      console.log("Adding secondary polyline to second map:", secondaryCoordinates.length, "points");
 
-      // Add primary polyline to second map
-      if (coordinates.length > 0) {
-        const validCoordinates = coordinates.filter(isValidCoordinate);
-        
-        if (validCoordinates.length > 0) {
-          secondMap.current.addSource('route', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'LineString',
-                coordinates: validCoordinates
-              }
-            }
-          });
-
-          secondMap.current.addLayer({
-            id: 'route-line',
-            type: 'line',
-            source: 'route',
-            layout: {
-              'line-join': 'round',
-              'line-cap': 'round'
-            },
-            paint: {
-              'line-color': '#0070f3',
-              'line-width': 4
-            }
-          });
+      // Add the GeoJSON source for the secondary polyline
+      secondMap.current.addSource('second-polyline-source', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: secondaryCoordinates
+          }
         }
-      }
+      });
 
-      // Add secondary polyline to second map if in split view
-      if (secondaryCoordinates.length > 0 && comparisonMode) {
-        const validSecondaryCoordinates = secondaryCoordinates.filter(isValidCoordinate);
-        
-        if (validSecondaryCoordinates.length > 0) {
-          secondMap.current.addSource('route-second', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'LineString',
-                coordinates: validSecondaryCoordinates
-              }
-            }
-          });
-
-          secondMap.current.addLayer({
-            id: 'route-second-line',
-            type: 'line',
-            source: 'route-second',
-            layout: {
-              'line-join': 'round',
-              'line-cap': 'round'
-            },
-            paint: {
-              'line-color': '#f30070',
-              'line-width': 4
-            }
-          });
-
-          // Fit second map to secondary polyline bounds
-          const secondBounds = new maplibregl.LngLatBounds();
-          validSecondaryCoordinates.forEach(coord => secondBounds.extend([coord[0], coord[1]]));
-          secondMap.current.fitBounds(secondBounds, { padding: 40 });
+      // Add the line layer for the secondary polyline
+      secondMap.current.addLayer({
+        id: 'second-polyline-layer',
+        type: 'line',
+        source: 'second-polyline-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#10b981',
+          'line-width': 3
         }
-      }
-    } else if (map.current && comparisonMode && comparisonType === 'overlay' && secondaryCoordinates.length > 0) {
-      // Handle overlay mode in the main map
-      addSecondaryPolyline(map.current, secondaryCoordinates.filter(isValidCoordinate), overlayOpacity);
+      });
+    };
+
+    // Add polylines to both maps when they're loaded
+    if (secondMap.current.loaded()) {
+      addPolylinesToMaps();
+    } else {
+      console.log("Second map not loaded, waiting for load event");
+      secondMap.current.once('load', addPolylinesToMaps);
     }
 
-  }, [map, secondMap, coordinates, secondaryCoordinates, comparisonMode, comparisonType, overlayOpacity, splitViewActive]);
+    // Cleanup function
+    return () => {
+      if (secondMap.current) {
+        try {
+          if (secondMap.current.getSource('second-polyline-source')) {
+            secondMap.current.removeLayer('second-polyline-layer');
+            secondMap.current.removeSource('second-polyline-source');
+          }
+        } catch (error) {
+          console.error("Error in cleanup of second map effect:", error);
+        }
+      }
+    };
+  }, [secondaryCoordinates, coordinates, splitViewActive, secondMap, map, comparisonMode]);
 
-  return null; // This component doesn't render any UI elements
+  return null;
 };
 
-export { MapEffects };
-
-// Also export as default for compatibility with existing imports
 export default MapEffects;
