@@ -14,28 +14,8 @@ interface MapProps {
   showIntersections?: boolean;
 }
 
-const Map: React.FC<MapProps> = ({ 
-  coordinates, 
-  secondaryCoordinates = [], 
-  isLoading = false,
-  comparisonMode = false,
-  comparisonType = 'overlay',
-  overlayOpacity = 50,
-  showDivergence = true,
-  showIntersections = true
-}) => {
-  return (
-    <MapContainer 
-      coordinates={coordinates}
-      secondaryCoordinates={secondaryCoordinates}
-      isLoading={isLoading}
-      comparisonMode={comparisonMode}
-      comparisonType={comparisonType}
-      overlayOpacity={overlayOpacity}
-      showDivergence={showDivergence}
-      showIntersections={showIntersections}
-    />
-  );
+const Map: React.FC<MapProps> = (props) => {
+  return <MapContainer {...props} />;
 };
 
 export default Map;
