@@ -24,12 +24,13 @@ export function usePolylineComparison() {
     
     try {
       const decodedCoordinates = decodePolyline(secondaryPolyline);
-      console.log("Secondary polyline decoded:", decodedCoordinates.length);
+      console.log("Secondary polyline decoded:", decodedCoordinates.length, "coordinates");
       setSecondaryCoordinates(decodedCoordinates);
       
       // Auto-enable comparison mode when a secondary polyline is added
       if (decodedCoordinates.length > 0 && !comparisonMode) {
         setComparisonMode(true);
+        toast.success("Comparison mode enabled automatically");
       }
     } catch (error) {
       console.error('Error decoding secondary polyline:', error);
@@ -55,6 +56,7 @@ export function usePolylineComparison() {
       toast.success("Comparison mode enabled");
     } else {
       setSecondaryPolyline('');
+      setSecondaryCoordinates([]);
       toast.info("Comparison mode disabled");
     }
   };

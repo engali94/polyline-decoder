@@ -119,8 +119,17 @@ const MapEffects = ({
     }
   }, [coordinates, isLoading, map, validCoordinates]);
 
-  // Secondary polyline and comparison mode effects
+  // Secondary polyline and comparison mode effects for main map
   useEffect(() => {
+    console.log("Comparison effect triggered:", {
+      hasMap: !!map.current,
+      comparisonMode,
+      comparisonType,
+      secondaryCoords: secondaryCoordinates.length,
+      validSecondaryCoords,
+      splitViewActive
+    });
+
     if (!map.current || isLoading) return;
     if (!comparisonMode || !validSecondaryCoords) return;
     if (comparisonType === 'sideBySide' && splitViewActive) return;
@@ -156,7 +165,7 @@ const MapEffects = ({
       if (map.current) {
         cleanupMapLayers(map.current, comparisonType);
         // Immediately re-add primary polyline to prevent it from disappearing
-        if (coordinates.length > 0) {
+        if (validCoordinates) {
           addPrimaryPolyline(map.current, coordinates, false);
         }
       }
@@ -172,6 +181,7 @@ const MapEffects = ({
     coordinates,
     map,
     isLoading,
+    validCoordinates,
     validSecondaryCoords
   ]);
 
@@ -181,74 +191,92 @@ const MapEffects = ({
       hasSecondMap: !!secondMap.current,
       splitViewActive,
       comparisonMode,
+      comparisonType,
       coordinatesLength: coordinates.length,
-      secondaryCoordinatesLength: secondaryCoordinates.length
+      secondaryCoordinatesLength: secondaryCoordinates.length,
+      validSecondaryCoords
     });
 
     if (!secondMap.current) return;
-    if (!splitViewActive || !comparisonMode) return;
+    if (!splitViewActive || !comparisonMode || comparisonType !== 'sideBySide') return;
     if (!validSecondaryCoords) return;
 
     const addPolylinesToMaps = () => {
       console.log("Adding polylines to maps in side-by-side view");
       
       // Add primary polyline to first map
-      if (map.current && map.current.loaded()) {
-        addPrimaryPolyline(map.current, coordinates, false);
+      if (map.current && validCoordinates) {
+        if (map.current.loaded()) {
+          addPrimaryPolyline(map.current, coordinates, false);
+        } else {
+          map.current.once('load', () => {
+            addPrimaryPolyline(map.current!, coordinates, false);
+          });
+        }
       }
       
       // Clear any existing layers on second map
       try {
-        if (secondMap.current) {
-          if (secondMap.current.getSource('second-polyline-source')) {
-            secondMap.current.removeLayer('second-polyline-layer');
-            secondMap.current.removeSource('second-polyline-source');
-          }
+        if (secondMap.current && secondMap.current.getSource('second-polyline-source')) {
+          secondMap.current.removeLayer('second-polyline-layer');
+          secondMap.current.removeSource('second-polyline-source');
         }
       } catch (error) {
         console.error("Error cleaning up second map:", error);
       }
       
+      if (!secondMap.current || !validSecondaryCoords) return;
+      
+      // Add second polyline to second map
+      if (secondMap.current.loaded()) {
+        addSecondPolyline();
+      } else {
+        secondMap.current.once('load', addSecondPolyline);
+      }
+    };
+    
+    const addSecondPolyline = () => {
       if (!secondMap.current) return;
       
       console.log("Adding secondary polyline to second map:", secondaryCoordinates.length, "points");
-
-      // Add the GeoJSON source for the secondary polyline
-      secondMap.current.addSource('second-polyline-source', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'LineString',
-            coordinates: secondaryCoordinates
+      
+      try {
+        // Add the GeoJSON source for the secondary polyline
+        secondMap.current.addSource('second-polyline-source', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: secondaryCoordinates
+            }
           }
-        }
-      });
+        });
 
-      // Add the line layer for the secondary polyline
-      secondMap.current.addLayer({
-        id: 'second-polyline-layer',
-        type: 'line',
-        source: 'second-polyline-source',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#10b981',
-          'line-width': 3
-        }
-      });
+        // Add the line layer for the secondary polyline
+        secondMap.current.addLayer({
+          id: 'second-polyline-layer',
+          type: 'line',
+          source: 'second-polyline-source',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#10b981',
+            'line-width': 4
+          }
+        });
+        
+        console.log("Secondary polyline added to second map successfully");
+      } catch (error) {
+        console.error("Error adding secondary polyline to second map:", error);
+      }
     };
 
-    // Add polylines to both maps when they're loaded
-    if (secondMap.current.loaded()) {
-      addPolylinesToMaps();
-    } else {
-      console.log("Second map not loaded, waiting for load event");
-      secondMap.current.once('load', addPolylinesToMaps);
-    }
+    // Add polylines to both maps
+    addPolylinesToMaps();
 
     // Cleanup function
     return () => {
@@ -269,7 +297,9 @@ const MapEffects = ({
     splitViewActive, 
     secondMap, 
     map, 
-    comparisonMode, 
+    comparisonMode,
+    comparisonType,
+    validCoordinates,
     validSecondaryCoords
   ]);
 
