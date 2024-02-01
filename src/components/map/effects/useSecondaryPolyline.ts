@@ -37,13 +37,35 @@ export const useSecondaryPolyline = ({
 }: UseSecondaryPolylineProps) => {
   
   useEffect(() => {
+    console.log("Secondary polyline effect triggered:", {
+      hasMap: !!map.current,
+      comparisonMode,
+      comparisonType,
+      coords: secondaryCoordinates.length,
+      validSecondaryCoords,
+      splitViewActive
+    });
+
     if (!map.current || isLoading) return;
-    if (!comparisonMode || !validSecondaryCoords) return;
-    if (comparisonType === 'sideBySide' && splitViewActive) return;
+    if (!comparisonMode) return;
+    if (!validSecondaryCoords) {
+      console.warn("Secondary coordinates are invalid:", secondaryCoordinates);
+      return;
+    }
+    if (comparisonType === 'sideBySide' && splitViewActive) {
+      console.log("Skipping secondary polyline rendering in side-by-side view");
+      return;
+    }
 
     const onMapLoad = () => {
       // Clean up previous layers before adding new ones
       cleanupMapLayers(map.current!, comparisonType);
+      
+      console.log("Adding secondary polyline to map:", {
+        comparisonType,
+        overlayOpacity,
+        coordCount: secondaryCoordinates.length
+      });
       
       if (comparisonType === 'overlay') {
         addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
@@ -64,6 +86,7 @@ export const useSecondaryPolyline = ({
     if (map.current.loaded()) {
       onMapLoad();
     } else {
+      console.log("Map not loaded, waiting for load event");
       map.current.once('load', onMapLoad);
     }
 
