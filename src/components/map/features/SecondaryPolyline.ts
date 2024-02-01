@@ -14,7 +14,8 @@ export const addSecondaryPolyline = (
   // Force opacity to a reasonable minimum to ensure visibility
   const effectiveOpacity = Math.max(overlayOpacity, 50) / 100;
   
-  console.log('ADDING SECONDARY POLYLINE WITH', secondaryCoordinates.length, 'POINTS:', secondaryCoordinates);
+  console.log('ADDING SECONDARY POLYLINE WITH', secondaryCoordinates.length, 'POINTS:', 
+    JSON.stringify(secondaryCoordinates.slice(0, 3)));
   console.log('Using opacity:', effectiveOpacity);
 
   const sourceId = 'secondary-polyline-source';
@@ -24,9 +25,11 @@ export const addSecondaryPolyline = (
   try {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId);
+      console.log("Removed existing secondary polyline layer");
     }
     if (map.getSource(sourceId)) {
       map.removeSource(sourceId);
+      console.log("Removed existing secondary polyline source");
     }
   } catch (error) {
     console.error('Error cleaning up secondary polyline layers:', error);
@@ -45,6 +48,7 @@ export const addSecondaryPolyline = (
         }
       }
     });
+    console.log("Added secondary polyline source successfully");
 
     map.addLayer({
       id: layerId,
@@ -60,20 +64,28 @@ export const addSecondaryPolyline = (
         'line-opacity': effectiveOpacity
       }
     });
-    
-    console.log('✅ Secondary polyline added successfully');
+    console.log("Added secondary polyline layer successfully");
     
     // Add start marker for secondary polyline
     if (secondaryCoordinates.length > 0) {
-      new maplibregl.Marker({ color: '#10b981' })
-        .setLngLat(secondaryCoordinates[0])
-        .addTo(map);
-      
-      // Add end marker for secondary polyline
-      new maplibregl.Marker({ color: '#ef4444' })
-        .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
-        .addTo(map);
+      try {
+        // Start marker
+        new maplibregl.Marker({ color: '#10b981' })
+          .setLngLat(secondaryCoordinates[0])
+          .addTo(map);
+        
+        // End marker
+        new maplibregl.Marker({ color: '#ef4444' })
+          .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
+          .addTo(map);
+          
+        console.log("Added markers at start and end points");
+      } catch (markerError) {
+        console.error("Error adding markers:", markerError);
+      }
     }
+    
+    console.log('✅ Secondary polyline added successfully');
   } catch (error) {
     console.error('Error adding secondary polyline:', error);
   }

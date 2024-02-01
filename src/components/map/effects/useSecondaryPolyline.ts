@@ -62,6 +62,7 @@ export const useSecondaryPolyline = ({
       return;
     }
     
+    // Skip rendering secondary line on main map if we're in side-by-side mode
     if (comparisonType === 'sideBySide' && splitViewActive) {
       console.log("ℹ️ Skipping secondary polyline rendering in side-by-side view");
       return;
@@ -76,7 +77,8 @@ export const useSecondaryPolyline = ({
       console.log("➕ Adding secondary polyline to map:", {
         comparisonType,
         overlayOpacity,
-        coordCount: secondaryCoordinates.length
+        coordCount: secondaryCoordinates.length,
+        sampleCoords: JSON.stringify(secondaryCoordinates.slice(0, 2))
       });
       
       // For overlay and diff mode, always show the secondary polyline
@@ -96,6 +98,7 @@ export const useSecondaryPolyline = ({
       }
     };
 
+    // Wait until map is loaded to add layers
     if (map.current.loaded()) {
       console.log("Map already loaded, adding secondary polyline now");
       onMapLoad();

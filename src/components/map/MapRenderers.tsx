@@ -46,6 +46,7 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
     const currentStyle = styleOptions.find(style => style.id === currentStyleId);
     if (!currentStyle) return;
 
+    console.log("Initializing primary map");
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: currentStyle.url,
@@ -66,11 +67,12 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
 
   // Initialize secondary map for side-by-side view
   useEffect(() => {
-    console.log("Split view active changed:", splitViewActive);
+    console.log("Split view active changed:", splitViewActive, "Comparison mode:", comparisonMode);
     
     if (!splitViewActive || !secondMapContainer.current) {
       // Clean up second map if split view is deactivated
       if (secondMap.current) {
+        console.log("Removing second map as split view is deactivated");
         secondMap.current.remove();
         secondMap.current = null;
       }
@@ -108,6 +110,13 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
       syncMaps(map.current, secondMap.current);
       syncMaps(secondMap.current, map.current);
     }
+
+    // Force initial second map render
+    setTimeout(() => {
+      if (secondMap.current) {
+        secondMap.current.resize();
+      }
+    }, 100);
 
     return () => {
       if (secondMap.current) {

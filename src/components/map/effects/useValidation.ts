@@ -14,6 +14,8 @@ export const useCoordinateValidation = (
       typeof coord[1] === 'number' &&
       !isNaN(coord[0]) && 
       !isNaN(coord[1]) &&
+      Number.isFinite(coord[0]) &&
+      Number.isFinite(coord[1]) &&
       Math.abs(coord[0]) <= 180 &&
       Math.abs(coord[1]) <= 90
     );
@@ -28,16 +30,20 @@ export const useCoordinateValidation = (
       typeof coord[1] === 'number' &&
       !isNaN(coord[0]) && 
       !isNaN(coord[1]) &&
+      Number.isFinite(coord[0]) &&
+      Number.isFinite(coord[1]) &&
       Math.abs(coord[0]) <= 180 &&
       Math.abs(coord[1]) <= 90
     );
 
-  // Log validation results for debugging
+  // Detailed validation results for debugging
   console.log("Coordinate validation:", { 
     validPrimary: validCoordinates, 
     validSecondary: validSecondaryCoords,
     primaryCount: coordinates?.length || 0,
-    secondaryCount: secondaryCoordinates?.length || 0
+    secondaryCount: secondaryCoordinates?.length || 0,
+    primarySample: coordinates?.slice(0, 2) || [],
+    secondarySample: secondaryCoordinates?.slice(0, 2) || []
   });
 
   return { validCoordinates, validSecondaryCoords };

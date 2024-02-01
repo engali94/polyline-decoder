@@ -41,8 +41,10 @@ const MapContainer: React.FC<MapProps> = ({
   // Toggle split view based on comparison type
   useEffect(() => {
     if (comparisonMode && localComparisonType === 'sideBySide') {
+      console.log("Activating split view for side-by-side comparison");
       setSplitViewActive(true);
     } else {
+      console.log("Deactivating split view");
       setSplitViewActive(false);
     }
   }, [comparisonMode, localComparisonType]);
@@ -93,12 +95,13 @@ const MapContainer: React.FC<MapProps> = ({
         map.current.resize();
       }
       if (secondMap.current) {
+        console.log("Forcing second map redraw");
         secondMap.current.resize();
       }
-    }, 100);
+    }, 200); // Slightly longer timeout for better rendering
     
     return () => clearTimeout(redrawTimeout);
-  }, [comparisonMode, comparisonType, secondaryCoordinates, overlayOpacity]);
+  }, [comparisonMode, comparisonType, secondaryCoordinates, overlayOpacity, splitViewActive]);
 
   return (
     <div className="relative h-full w-full animate-fade-in">
