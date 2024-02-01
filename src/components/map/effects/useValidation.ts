@@ -3,7 +3,7 @@ export const useCoordinateValidation = (
   coordinates: [number, number][],
   secondaryCoordinates: [number, number][]
 ) => {
-  // More robust validation of coordinates to prevent map errors
+  // Ultra-strict validation of coordinates to prevent map errors
   const validCoordinates = coordinates && 
     Array.isArray(coordinates) && 
     coordinates.length > 0 && 
@@ -13,7 +13,9 @@ export const useCoordinateValidation = (
       typeof coord[0] === 'number' && 
       typeof coord[1] === 'number' &&
       !isNaN(coord[0]) && 
-      !isNaN(coord[1])
+      !isNaN(coord[1]) &&
+      Math.abs(coord[0]) <= 180 &&
+      Math.abs(coord[1]) <= 90
     );
   
   const validSecondaryCoords = secondaryCoordinates && 
@@ -25,8 +27,18 @@ export const useCoordinateValidation = (
       typeof coord[0] === 'number' && 
       typeof coord[1] === 'number' &&
       !isNaN(coord[0]) && 
-      !isNaN(coord[1])
+      !isNaN(coord[1]) &&
+      Math.abs(coord[0]) <= 180 &&
+      Math.abs(coord[1]) <= 90
     );
+
+  // Log validation results for debugging
+  console.log("Coordinate validation:", { 
+    validPrimary: validCoordinates, 
+    validSecondary: validSecondaryCoords,
+    primaryCount: coordinates?.length || 0,
+    secondaryCount: secondaryCoordinates?.length || 0
+  });
 
   return { validCoordinates, validSecondaryCoords };
 };

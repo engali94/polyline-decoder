@@ -12,14 +12,15 @@ export const addSecondaryPolyline = (
   }
 
   // Force opacity to a reasonable minimum to ensure visibility
-  const effectiveOpacity = Math.max(overlayOpacity, 30) / 100;
+  const effectiveOpacity = Math.max(overlayOpacity, 50) / 100;
   
-  console.log('Adding secondary polyline with', secondaryCoordinates.length, 'points and opacity', effectiveOpacity);
+  console.log('ADDING SECONDARY POLYLINE WITH', secondaryCoordinates.length, 'POINTS:', secondaryCoordinates);
+  console.log('Using opacity:', effectiveOpacity);
 
   const sourceId = 'secondary-polyline-source';
   const layerId = 'secondary-polyline-layer';
 
-  // Remove existing source and layer if they exist
+  // Clean up existing layers and sources first
   try {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId);
@@ -54,13 +55,25 @@ export const addSecondaryPolyline = (
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#10b981', // Keep emerald green color
-        'line-width': 5, // Increased width for better visibility
+        'line-color': '#10b981', // Emerald green color
+        'line-width': 6, // Increased width for better visibility
         'line-opacity': effectiveOpacity
       }
     });
     
-    console.log('Secondary polyline added successfully');
+    console.log('✅ Secondary polyline added successfully');
+    
+    // Add start marker for secondary polyline
+    if (secondaryCoordinates.length > 0) {
+      new maplibregl.Marker({ color: '#10b981' })
+        .setLngLat(secondaryCoordinates[0])
+        .addTo(map);
+      
+      // Add end marker for secondary polyline
+      new maplibregl.Marker({ color: '#ef4444' })
+        .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
+        .addTo(map);
+    }
   } catch (error) {
     console.error('Error adding secondary polyline:', error);
   }

@@ -54,9 +54,10 @@ const MapContainer: React.FC<MapProps> = ({
       secondaryCoordinatesLength: secondaryCoordinates.length,
       comparisonMode,
       comparisonType: localComparisonType,
-      splitViewActive
+      splitViewActive,
+      overlayOpacity
     });
-  }, [coordinates, secondaryCoordinates, comparisonMode, localComparisonType, splitViewActive]);
+  }, [coordinates, secondaryCoordinates, comparisonMode, localComparisonType, splitViewActive, overlayOpacity]);
 
   // Style handling for both maps
   useEffect(() => {
@@ -82,6 +83,22 @@ const MapContainer: React.FC<MapProps> = ({
       }
     }
   }, [currentStyleId, styleOptions]);
+
+  // Force redraw on comparison changes
+  useEffect(() => {
+    const redrawTimeout = setTimeout(() => {
+      // Force redraw by triggering a resize event
+      if (map.current) {
+        console.log("Forcing map redraw");
+        map.current.resize();
+      }
+      if (secondMap.current) {
+        secondMap.current.resize();
+      }
+    }, 100);
+    
+    return () => clearTimeout(redrawTimeout);
+  }, [comparisonMode, comparisonType, secondaryCoordinates, overlayOpacity]);
 
   return (
     <div className="relative h-full w-full animate-fade-in">
