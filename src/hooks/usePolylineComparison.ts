@@ -6,104 +6,32 @@ import { toast } from 'sonner';
 type ComparisonType = 'overlay' | 'sideBySide' | 'diff';
 
 export function usePolylineComparison() {
-  // Set comparison mode to false by default
-  const [comparisonMode, setComparisonMode] = useState(false);
+  // Set comparison mode to true by default
+  const [comparisonMode, setComparisonMode] = useState(true);
   const [secondaryPolyline, setSecondaryPolyline] = useState('');
   const [secondaryCoordinates, setSecondaryCoordinates] = useState<[number, number][]>([]);
   const [comparisonType, setComparisonType] = useState<ComparisonType>('overlay');
-  const [overlayOpacity, setOverlayOpacity] = useState(80); // Increased default opacity for better visibility
+  const [overlayOpacity, setOverlayOpacity] = useState(50);
   const [showDivergence, setShowDivergence] = useState(true);
   const [showIntersections, setShowIntersections] = useState(true);
   
   // Decode secondary polyline for comparison features
   useEffect(() => {
-    console.log("Secondary polyline changed:", secondaryPolyline.substring(0, 20) + (secondaryPolyline.length > 20 ? "..." : ""));
-    
-    if (!secondaryPolyline || secondaryPolyline.trim() === '') {
-      console.log("No secondary polyline provided, clearing coordinates");
+    if (!secondaryPolyline) {
       setSecondaryCoordinates([]);
       return;
     }
     
     try {
       const decodedCoordinates = decodePolyline(secondaryPolyline);
-      
-      // Quick validation
-      if (!decodedCoordinates || !Array.isArray(decodedCoordinates) || decodedCoordinates.length < 2) {
-        console.warn("Invalid secondary polyline: not enough coordinates");
-        toast.error('Invalid polyline format - needs at least 2 points');
-        return;
-      }
-      
-      // Log coordinates for debugging
-      console.log("Secondary polyline decoded:", decodedCoordinates.length, "points");
-      console.log("Sample coordinates:", JSON.stringify(decodedCoordinates.slice(0, 3)));
-      console.log("First coordinate:", decodedCoordinates[0], 
-                 "Last coordinate:", decodedCoordinates[decodedCoordinates.length-1]);
-      
-      // Sanitize coordinates - Create fixed version for Saudi Arabia coordinates
-      let sanitizedCoordinates: [number, number][] = [];
-
-      // Special case: If all coordinates are invalid but we know it's a Saudi Arabia polyline
-      const isAllOutOfRange = decodedCoordinates.every(coord => 
-        Math.abs(coord[0]) > 180 || Math.abs(coord[1]) > 90
-      );
-
-      const isSaudiArabiaPolyline = 
-        secondaryPolyline.startsWith('_A') || 
-        secondaryPolyline.startsWith('Gn') || 
-        secondaryPolyline.includes('oNnDgB') || 
-        secondaryPolyline.includes('gNz');
-
-      if (isAllOutOfRange && isSaudiArabiaPolyline) {
-        // Create synthetic coordinates for Saudi Arabia
-        const riyadhCoords: [number, number] = [46.7, 24.7]; // Riyadh coordinates
-        
-        // Create a path around Riyadh as a fallback
-        sanitizedCoordinates = Array(decodedCoordinates.length)
-          .fill(0)
-          .map((_, i) => {
-            // Create a small circular path around Riyadh
-            const angle = (i / decodedCoordinates.length) * Math.PI * 2;
-            const dist = 0.01 + (i % 5) * 0.002; // Small varying distance
-            return [
-              riyadhCoords[0] + Math.cos(angle) * dist,
-              riyadhCoords[1] + Math.sin(angle) * dist
-            ] as [number, number];
-          });
-        
-        console.log("Created synthetic Saudi Arabia path with", sanitizedCoordinates.length, "points");
-      } else {
-        // Standard sanitization
-        sanitizedCoordinates = decodedCoordinates.filter(coord => 
-          Array.isArray(coord) && coord.length === 2 &&
-          typeof coord[0] === 'number' && typeof coord[1] === 'number' &&
-          !isNaN(coord[0]) && !isNaN(coord[1]) &&
-          Number.isFinite(coord[0]) && Number.isFinite(coord[1]) &&
-          Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90
-        ) as [number, number][];
-      }
-      
-      if (sanitizedCoordinates.length < 2) {
-        console.warn("Invalid coordinates after sanitization");
-        toast.error('Invalid coordinates in polyline');
-        return;
-      }
-      
-      console.log("Secondary polyline valid with", sanitizedCoordinates.length, "points");
-      setSecondaryCoordinates(sanitizedCoordinates);
-      
-      // Auto-enable comparison mode when a secondary polyline is added
-      if (sanitizedCoordinates.length > 0 && !comparisonMode) {
-        setComparisonMode(true);
-        toast.success("Comparison mode enabled with " + sanitizedCoordinates.length + " points");
-      }
+      console.log("Secondary polyline decoded:", decodedCoordinates.length);
+      setSecondaryCoordinates(decodedCoordinates);
     } catch (error) {
       console.error('Error decoding secondary polyline:', error);
       toast.error('Error decoding secondary polyline');
       setSecondaryCoordinates([]);
     }
-  }, [secondaryPolyline, comparisonMode]);
+  }, [secondaryPolyline]);
 
   const handleComparisonTypeChange = (type: ComparisonType) => {
     console.log("Comparison type changed to:", type);
@@ -119,14 +47,9 @@ export function usePolylineComparison() {
     
     // Show toast notification for better UX
     if (newValue) {
-      if (secondaryPolyline && secondaryCoordinates.length > 0) {
-        toast.success("Comparison mode enabled with " + secondaryCoordinates.length + " points");
-      } else {
-        toast.info("Please enter a secondary polyline to compare");
-      }
+      toast.success("Comparison mode enabled");
     } else {
       setSecondaryPolyline('');
-      setSecondaryCoordinates([]);
       toast.info("Comparison mode disabled");
     }
   };
