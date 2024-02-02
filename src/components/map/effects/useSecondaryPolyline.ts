@@ -20,6 +20,7 @@ interface UseSecondaryPolylineProps {
   showIntersections: boolean;
   splitViewActive: boolean;
   validSecondaryCoords: boolean;
+  needsSanitization?: boolean;
 }
 
 export const useSecondaryPolyline = ({
@@ -33,7 +34,8 @@ export const useSecondaryPolyline = ({
   showDivergence,
   showIntersections,
   splitViewActive,
-  validSecondaryCoords
+  validSecondaryCoords,
+  needsSanitization
 }: UseSecondaryPolylineProps) => {
   
   useEffect(() => {
@@ -43,6 +45,7 @@ export const useSecondaryPolyline = ({
       comparisonType,
       coords: secondaryCoordinates?.length || 0,
       validSecondaryCoords,
+      needsSanitization,
       splitViewActive,
       coordinates: JSON.stringify(secondaryCoordinates?.slice(0, 2) || [])
     });
@@ -78,7 +81,8 @@ export const useSecondaryPolyline = ({
         comparisonType,
         overlayOpacity,
         coordCount: secondaryCoordinates.length,
-        sampleCoords: JSON.stringify(secondaryCoordinates.slice(0, 2))
+        sampleCoords: JSON.stringify(secondaryCoordinates.slice(0, 2)),
+        needsSanitization
       });
       
       // For overlay and diff mode, always show the secondary polyline
@@ -131,6 +135,7 @@ export const useSecondaryPolyline = ({
     coordinates,
     map,
     isLoading,
-    validSecondaryCoords
+    validSecondaryCoords,
+    needsSanitization
   ]);
 };

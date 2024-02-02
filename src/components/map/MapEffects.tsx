@@ -39,7 +39,7 @@ const MapEffects = (props: MapEffectsProps) => {
   } = props;
 
   // Validate coordinates
-  const { validCoordinates, validSecondaryCoords } = useCoordinateValidation(
+  const { validCoordinates, validSecondaryCoords, needsSanitization } = useCoordinateValidation(
     coordinates,
     secondaryCoordinates
   );
@@ -84,7 +84,8 @@ const MapEffects = (props: MapEffectsProps) => {
     showDivergence,
     showIntersections,
     splitViewActive,
-    validSecondaryCoords
+    validSecondaryCoords,
+    needsSanitization
   });
 
   // Second map effect for side-by-side view

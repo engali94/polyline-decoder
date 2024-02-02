@@ -11,13 +11,22 @@ export const cleanupMapLayers = (
   console.log("Cleaning up map layers for comparison type:", comparisonType);
   
   try {
-    // First remove all markers from the DOM
-    const markers = document.querySelectorAll('.maplibregl-marker');
-    markers.forEach(marker => {
-      if (marker.parentNode) {
-        marker.parentNode.removeChild(marker);
-      }
-    });
+    // First remove all markers from the DOM - more thorough cleanup
+    const markerCleanup = () => {
+      const markers = document.querySelectorAll('.maplibregl-marker');
+      console.log(`Found ${markers.length} markers to clean up`);
+      
+      markers.forEach(marker => {
+        if (marker.parentNode) {
+          marker.parentNode.removeChild(marker);
+          console.log("Removed marker from DOM");
+        }
+      });
+    };
+    
+    // Try cleanup twice - once immediate and once after a small delay
+    markerCleanup();
+    setTimeout(markerCleanup, 100);
 
     // Then remove layers and sources in correct order
     const layerIds = ['secondary-polyline-layer', 'second-polyline-layer'];
@@ -31,13 +40,19 @@ export const cleanupMapLayers = (
       }
     }
     
-    // Then remove sources
-    for (const sourceId of sourceIds) {
-      if (map.getSource(sourceId)) {
-        map.removeSource(sourceId);
-        console.log(`Removed source: ${sourceId}`);
+    // Then remove sources with a small delay to ensure layers are removed first
+    setTimeout(() => {
+      for (const sourceId of sourceIds) {
+        try {
+          if (map.getSource(sourceId)) {
+            map.removeSource(sourceId);
+            console.log(`Removed source: ${sourceId}`);
+          }
+        } catch (e) {
+          console.log(`Error removing source ${sourceId}:`, e);
+        }
       }
-    }
+    }, 50);
 
     // Clean up diff analysis layers if needed
     if (comparisonType === 'diff') {
