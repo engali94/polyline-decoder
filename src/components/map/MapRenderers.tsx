@@ -4,6 +4,9 @@ import * as maplibregl from 'maplibre-gl';
 import { Split } from 'lucide-react';
 import { StyleOption } from './StyleSelector';
 import { MapEffects } from './MapEffects';
+import { addPrimaryPolyline } from './features/PrimaryPolyline';
+import { addSecondaryPolyline } from './features/SecondaryPolyline';
+import { toast } from 'sonner';
 
 interface MapRenderersProps {
   coordinates: [number, number][];
@@ -46,6 +49,8 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
     const currentStyle = styleOptions.find(style => style.id === currentStyleId);
     if (!currentStyle) return;
 
+    console.log("Initializing primary map with style:", currentStyle.id);
+    
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: currentStyle.url,
@@ -57,12 +62,25 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
     map.current.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
+    // Add polylines once map is loaded
+    map.current.on('load', () => {
+      console.log("Primary map loaded - adding polylines");
+      if (coordinates.length > 0) {
+        addPrimaryPolyline(map.current, coordinates, isLoading);
+      }
+      
+      if (comparisonMode && comparisonType === 'overlay' && secondaryCoordinates.length > 0) {
+        addSecondaryPolyline(map.current, secondaryCoordinates, overlayOpacity);
+      }
+    });
+
     return () => {
       if (map.current) {
         map.current.remove();
+        map.current = null;
       }
     };
-  }, [styleOptions.length, map, currentStyleId]);
+  }, [styleOptions.length, currentStyleId]);
 
   // Initialize secondary map for side-by-side view
   useEffect(() => {
@@ -92,6 +110,24 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
 
     secondMap.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
+    // Add polylines once second map is loaded
+    secondMap.current.on('load', () => {
+      console.log("Second map loaded - adding secondary polyline");
+      if (secondaryCoordinates.length > 0) {
+        try {
+          // Use primary polyline rendering function but with secondary coordinates
+          addPrimaryPolyline(secondMap.current, secondaryCoordinates, isLoading);
+          toast.success("Secondary route loaded in side-by-side view");
+        } catch (err) {
+          console.error("Error adding polyline to second map:", err);
+          toast.error("Failed to render secondary route");
+        }
+      } else {
+        console.warn("No secondary coordinates available for second map");
+      }
+    });
+
+    // Sync maps for navigation
     const syncMaps = (sourceMap: maplibregl.Map, targetMap: maplibregl.Map) => {
       sourceMap.on('move', () => {
         if (targetMap.getCenter().toString() === sourceMap.getCenter().toString()) {
@@ -115,24 +151,21 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
         secondMap.current = null;
       }
     };
-  }, [splitViewActive, styleOptions.length, map, secondMap, currentStyleId]);
+  }, [splitViewActive, styleOptions.length, currentStyleId, secondaryCoordinates]);
+
+  // Log props for debugging
+  useEffect(() => {
+    console.log("MapRenderers props:", {
+      primaryCoordinates: coordinates.length,
+      secondaryCoordinates: secondaryCoordinates.length,
+      comparisonMode,
+      comparisonType,
+      splitViewActive
+    });
+  }, [coordinates, secondaryCoordinates, comparisonMode, comparisonType, splitViewActive]);
 
   return (
     <>
-      <MapEffects
-        map={map}
-        secondMap={secondMap}
-        coordinates={coordinates}
-        secondaryCoordinates={secondaryCoordinates}
-        isLoading={isLoading}
-        comparisonMode={comparisonMode}
-        comparisonType={comparisonType}
-        overlayOpacity={overlayOpacity}
-        showDivergence={showDivergence}
-        showIntersections={showIntersections}
-        splitViewActive={splitViewActive}
-      />
-      
       <div className={`h-full w-full ${splitViewActive ? 'hidden md:block md:w-1/2 md:pr-1' : ''}`}>
         <div ref={mapContainer} className="map-container h-full w-full" />
       </div>

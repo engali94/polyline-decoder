@@ -8,7 +8,7 @@ export const addPrimaryPolyline = (
 ): void => {
   if (isLoading || !coordinates.length) return;
 
-  console.log("📍 Adding primary polyline with", coordinates.length, "points");
+  console.log("📍 Adding polyline with", coordinates.length, "points");
   console.log("📍 First few coordinates:", coordinates.slice(0, 3));
   console.log("📍 Last few coordinates:", coordinates.slice(-3));
 
@@ -55,7 +55,7 @@ export const addPrimaryPolyline = (
   );
 
   if (validCoords.length === 0) {
-    console.error("❌ No valid coordinates for primary polyline");
+    console.error("❌ No valid coordinates for polyline");
     return;
   }
 
@@ -97,23 +97,20 @@ export const addPrimaryPolyline = (
       if (isSaudiArabia) {
         console.log("🇸🇦 Saudi Arabia coordinates detected - using optimized view");
         
-        // Immediately center the map on the first coordinate
-        map.jumpTo({
-          center: validCoords[0],
-          zoom: 14  // Start with a closer zoom
-        });
-        
-        // Then fit bounds with padding
+        // Fit bounds with padding
         const bounds = new maplibregl.LngLatBounds();
         for (const coord of validCoords) {
           bounds.extend(coord);
         }
         
-        map.fitBounds(bounds, {
-          padding: 80,
-          maxZoom: 15,
-          duration: 500
-        });
+        // Fit bounds with a slight delay to ensure map is ready
+        setTimeout(() => {
+          map.fitBounds(bounds, {
+            padding: 80,
+            maxZoom: 15,
+            duration: 1000
+          });
+        }, 100);
       } else {
         // Regular worldwide coordinates
         const bounds = new maplibregl.LngLatBounds();
@@ -124,22 +121,14 @@ export const addPrimaryPolyline = (
         
         console.log("🗺️ Fitting to bounds:", bounds.toString());
         
-        // Immediately jump to the approximate center first
-        const center = [
-          (bounds.getEast() + bounds.getWest()) / 2,
-          (bounds.getNorth() + bounds.getSouth()) / 2
-        ];
-        map.jumpTo({
-          center: center as [number, number],
-          zoom: 7
-        });
-        
-        // Then fit bounds with a short animation
-        map.fitBounds(bounds, {
-          padding: 50,
-          maxZoom: 15,
-          duration: 500
-        });
+        // Fit bounds with a slight delay to ensure map is ready
+        setTimeout(() => {
+          map.fitBounds(bounds, {
+            padding: 50,
+            maxZoom: 15,
+            duration: 1000
+          });
+        }, 100);
       }
     }
     
