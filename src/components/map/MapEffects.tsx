@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import {
@@ -38,8 +37,8 @@ const MapEffects = (props: MapEffectsProps) => {
     splitViewActive
   } = props;
 
-  // Validate coordinates
-  const { validCoordinates, validSecondaryCoords, needsSanitization } = useCoordinateValidation(
+  // Validate coordinates - simplify validation to boolean
+  const { validCoordinates, validSecondaryCoords } = useCoordinateValidation(
     coordinates,
     secondaryCoordinates
   );
@@ -84,8 +83,7 @@ const MapEffects = (props: MapEffectsProps) => {
     showDivergence,
     showIntersections,
     splitViewActive,
-    validSecondaryCoords,
-    needsSanitization
+    validSecondaryCoords
   });
 
   // Second map effect for side-by-side view

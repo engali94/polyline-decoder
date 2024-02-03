@@ -1,4 +1,3 @@
-
 import * as maplibregl from 'maplibre-gl';
 
 export const addSecondaryPolyline = (
@@ -11,8 +10,8 @@ export const addSecondaryPolyline = (
     return;
   }
 
-  // Force opacity to a reasonable minimum to ensure visibility
-  const effectiveOpacity = Math.max(overlayOpacity, 50) / 100;
+  // Force opacity to a higher minimum to ensure visibility
+  const effectiveOpacity = Math.max(overlayOpacity, 70) / 100;
   
   console.log('ADDING SECONDARY POLYLINE WITH', secondaryCoordinates.length, 'POINTS:', 
     JSON.stringify(secondaryCoordinates.slice(0, 3)));
@@ -60,7 +59,7 @@ export const addSecondaryPolyline = (
       },
       paint: {
         'line-color': '#10b981', // Emerald green color
-        'line-width': 6, // Increased width for better visibility
+        'line-width': 8, // Increased width for better visibility
         'line-opacity': effectiveOpacity
       }
     });

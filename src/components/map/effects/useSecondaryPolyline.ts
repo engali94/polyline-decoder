@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { 
@@ -20,7 +19,6 @@ interface UseSecondaryPolylineProps {
   showIntersections: boolean;
   splitViewActive: boolean;
   validSecondaryCoords: boolean;
-  needsSanitization?: boolean;
 }
 
 export const useSecondaryPolyline = ({
@@ -35,7 +33,6 @@ export const useSecondaryPolyline = ({
   showIntersections,
   splitViewActive,
   validSecondaryCoords,
-  needsSanitization
 }: UseSecondaryPolylineProps) => {
   
   useEffect(() => {
@@ -45,7 +42,6 @@ export const useSecondaryPolyline = ({
       comparisonType,
       coords: secondaryCoordinates?.length || 0,
       validSecondaryCoords,
-      needsSanitization,
       splitViewActive,
       coordinates: JSON.stringify(secondaryCoordinates?.slice(0, 2) || [])
     });
@@ -60,8 +56,8 @@ export const useSecondaryPolyline = ({
       return;
     }
     
-    if (!validSecondaryCoords) {
-      console.warn("❌ Secondary coordinates are invalid:", secondaryCoordinates);
+    if (!secondaryCoordinates || secondaryCoordinates.length < 2) {
+      console.warn("❌ Secondary coordinates missing or insufficient:", secondaryCoordinates);
       return;
     }
     
@@ -81,8 +77,7 @@ export const useSecondaryPolyline = ({
         comparisonType,
         overlayOpacity,
         coordCount: secondaryCoordinates.length,
-        sampleCoords: JSON.stringify(secondaryCoordinates.slice(0, 2)),
-        needsSanitization
+        sampleCoords: JSON.stringify(secondaryCoordinates.slice(0, 2))
       });
       
       // For overlay and diff mode, always show the secondary polyline
@@ -135,7 +130,6 @@ export const useSecondaryPolyline = ({
     coordinates,
     map,
     isLoading,
-    validSecondaryCoords,
-    needsSanitization
+    validSecondaryCoords
   ]);
 };

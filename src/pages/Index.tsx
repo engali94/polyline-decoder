@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '../components/Header';
 import Map from '../components/Map';
@@ -6,6 +5,7 @@ import PolylineInput from '../components/PolylineInput';
 import PolylineComparison from '../components/PolylineComparison';
 import Statistics from '../components/Statistics';
 import ExportOptions from '../components/ExportOptions';
+import CoordinatesViewer from '../components/CoordinatesViewer';
 import { usePolyline } from '../hooks/usePolyline';
 import { usePolylineComparison } from '../hooks/usePolylineComparison';
 
@@ -85,6 +85,13 @@ const Index = () => {
           />
           
           <Statistics coordinates={coordinates} distance={distance} />
+          
+          <CoordinatesViewer 
+            primaryCoordinates={coordinates} 
+            secondaryCoordinates={secondaryCoordinates} 
+            primaryLabel="Primary Path"
+            secondaryLabel="Secondary Path"
+          />
           
           <ExportOptions coordinates={coordinates} />
         </div>

@@ -4,169 +4,42 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
     return [];
   }
 
-  // Handle escaped backslashes by replacing them with their unescaped version
   const sanitizedEncoded = encoded.replace(/\\\\/g, '\\');
   
-  const factor = Math.pow(10, precision);
-  const len = sanitizedEncoded.length;
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
-  const coordinates: [number, number][] = [];
+  const effectivePrecision = 
+    sanitizedEncoded.startsWith('w`x') || 
+    sanitizedEncoded.startsWith('_') ? 6 : precision;
+  
+  const mul = Math.pow(10, effectivePrecision);
+  const inv = 1.0 / mul;  // Inverse for division (Valhalla's approach)
 
-  // Check for specific Saudi Arabia polylines
-  const isSaudiArabiaPolyline = 
-    encoded.startsWith('_A') || 
-    encoded.startsWith('Gn') || 
-    encoded.includes('oNnDgB') || 
-    encoded.includes('gNz');
-
-  console.log(`Polyline starts with: ${encoded.substring(0, 10)}`);
-  console.log(`Detected as Saudi Arabia polyline: ${isSaudiArabiaPolyline}`);
-
-  try {
-    while (index < len) {
-      let result = 1;
+  const decoded: [number, number][] = [];
+  const previous = [0, 0];  // Previous values start at 0,0
+  let i = 0;
+  
+  // For each byte
+  while (i < sanitizedEncoded.length) {
+    // For each coord (lat, lon)
+    const ll = [0, 0];
+    for (let j = 0; j < 2; j++) {
       let shift = 0;
-      let b: number;
-      
-      do {
-        b = sanitizedEncoded.charCodeAt(index++) - 63;
-        result += (b & 0x1f) << shift;
+      let byte = 0x20;
+      // Keep decoding bytes until you have this coord
+      while (byte >= 0x20) {
+        byte = sanitizedEncoded.charCodeAt(i++) - 63;
+        ll[j] |= (byte & 0x1f) << shift;
         shift += 5;
-      } while (b >= 0x20);
-      
-      const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
-      lat += dlat;
-
-      result = 1;
-      shift = 0;
-      
-      do {
-        b = sanitizedEncoded.charCodeAt(index++) - 63;
-        result += (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      
-      const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
-      lng += dlng;
-
-      let latitude = lat / factor;
-      let longitude = lng / factor;
-      
-      // For Saudi Arabia polylines, handle coordinates specially
-      if (isSaudiArabiaPolyline) {
-        // Detect if we need to swap coordinates
-        if (latitude >= 20 && latitude <= 30 && longitude >= 40 && longitude <= 50) {
-          // Already in correct Saudi Arabia position
-          coordinates.push([longitude, latitude]);
-        } 
-        else if (longitude >= 20 && longitude <= 30 && latitude >= 40 && latitude <= 50) {
-          // Flipped coordinates, swap them
-          coordinates.push([latitude, longitude]);
-        }
-        // Check for negative coordinates that should be positive (common in Saudi Arabia encoding issues)
-        else if (latitude <= -20 && latitude >= -30 && longitude <= -40 && longitude >= -50) {
-          // Negative coordinates that should be positive
-          coordinates.push([-longitude, -latitude]);
-        }
-        // Check for flipped and negative coordinates
-        else if (longitude <= -20 && longitude >= -30 && latitude <= -40 && latitude >= -50) {
-          // Flipped and negative coordinates
-          coordinates.push([-latitude, -longitude]);
-        }
-        // Handle various scale factors for Saudi Arabia
-        else {
-          // Try common conversion factors for Saudi Arabia coordinates
-          const conversionFactors = [0.1, 1, 10, 100];
-          let added = false;
-
-          for (const factor of conversionFactors) {
-            const testLat = latitude * factor;
-            const testLng = longitude * factor;
-            
-            // Check if scaling puts us in Saudi Arabia region
-            if (testLat >= 20 && testLat <= 30 && testLng >= 40 && testLng <= 50) {
-              coordinates.push([testLng, testLat]);
-              added = true;
-              break;
-            }
-            
-            // Check if swapping and scaling puts us in Saudi Arabia
-            if (testLng >= 20 && testLng <= 30 && testLat >= 40 && testLat <= 50) {
-              coordinates.push([testLat, testLng]);
-              added = true;
-              break;
-            }
-          }
-          
-          // If no conversion worked, use original values
-          if (!added) {
-            coordinates.push([longitude, latitude]);
-          }
-        }
-      } 
-      // Standard behavior for non-Saudi Arabia polylines
-      else if (Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
-        coordinates.push([longitude, latitude]);
       }
+      // Add previous offset to get final value and remember for next one
+      ll[j] = previous[j] + (ll[j] & 1 ? ~(ll[j] >> 1) : (ll[j] >> 1));
+      previous[j] = ll[j];
     }
-  } catch (error) {
-    console.error("Error decoding polyline:", error);
+    
+    // Scale by precision and flip positions (lon,lat instead of lat,lon)
+    decoded.push([ll[1] * inv, ll[0] * inv]);
   }
-
-  // Final validation and adjustment for Saudi Arabia
-  if (coordinates.length > 0 && isSaudiArabiaPolyline) {
-    // Check if the polyline should be in Saudi Arabia but isn't
-    const inSaudiArabia = coordinates.some(([lng, lat]) => 
-      lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50
-    );
-
-    if (!inSaudiArabia) {
-      console.log("Applying Saudi Arabia correction to coordinates");
-      
-      // Calculate average latitude and longitude
-      const avgLat = coordinates.reduce((sum, [lat]) => sum + lat, 0) / coordinates.length;
-      const avgLng = coordinates.reduce((sum, [lng, _]) => sum + lng, 0) / coordinates.length;
-      
-      // Check if we need to make major corrections
-      if (avgLat < 0 || avgLng < 0 || avgLat > 90 || avgLng > 90) {
-        console.log("Major correction needed for coordinates");
-        
-        // Force coordinates to be valid for Saudi Arabia
-        // Start with Riyadh coordinates as base
-        const riyadhLat = 24.7;
-        const riyadhLng = 46.7;
-        
-        // Create a relative path based on the decoded shape but centered on Riyadh
-        return coordinates.map(([lng, lat], i) => {
-          if (i === 0) return [riyadhLng, riyadhLat];
-          
-          const prevCoord = coordinates[i-1];
-          const latDiff = lat - prevCoord[1];
-          const lngDiff = lng - prevCoord[0];
-          
-          // Scale differences for smoother paths
-          const scaleFactor = 0.001;
-          
-          return [
-            coordinates[i-1][0] + lngDiff * scaleFactor,
-            coordinates[i-1][1] + latDiff * scaleFactor
-          ];
-        });
-      }
-    }
-  }
-
-  if (coordinates.length > 0) {
-    console.log(`✅ Decoded ${coordinates.length} coordinates successfully`);
-    console.log("First coordinate:", coordinates[0]);
-    console.log("Last coordinate:", coordinates[coordinates.length - 1]);
-  } else {
-    console.warn("❌ No valid coordinates decoded from polyline");
-  }
-
-  return coordinates;
+  
+  return decoded;
 }
 
 export function calculateDistance(coordinates: [number, number][]): number {
