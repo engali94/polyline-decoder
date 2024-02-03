@@ -14,16 +14,16 @@ const SideBySideTab: React.FC<SideBySideTabProps> = ({
   alignmentThreshold, 
   setAlignmentThreshold 
 }) => {
+  // Function to trigger alignment
   const handleAutoAlign = () => {
-    // Dispatch the custom event with the threshold value
-    window.dispatchEvent(new CustomEvent('auto-align-polylines', { 
+    // Create and dispatch custom event for auto-alignment
+    const event = new CustomEvent('auto-align-maps', {
       detail: { threshold: alignmentThreshold }
-    }));
-    
-    // The actual processing happens in MapEffects.tsx
-    // Don't show toast here as it will be shown by the event handler
+    });
+    window.dispatchEvent(event);
+    toast.success(`Auto-aligned segments with threshold: ${alignmentThreshold}m`);
   };
-
+  
   return (
     <div className="flex flex-col gap-2">
       <div className="text-xs">View primary and secondary polylines side by side</div>

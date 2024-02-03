@@ -6,49 +6,33 @@ export const addSecondaryPolyline = (
   secondaryCoordinates: [number, number][],
   overlayOpacity: number
 ): void => {
-  if (!secondaryCoordinates.length) return;
-
-  console.log("🟢 Adding secondary polyline with", secondaryCoordinates.length, "points");
-  console.log("🟢 First few coordinates:", secondaryCoordinates.slice(0, 3));
-  console.log("🟢 Last few coordinates:", secondaryCoordinates.slice(-3));
-
-  // Check if map is ready
-  if (!map.isStyleLoaded()) {
-    console.log("⏳ Map not ready, waiting for style to load");
-    map.once('style.load', () => {
-      addSecondaryPolyline(map, secondaryCoordinates, overlayOpacity);
-    });
+  if (!secondaryCoordinates || secondaryCoordinates.length < 2) {
+    console.warn('Secondary polyline coordinates invalid or insufficient:', secondaryCoordinates);
     return;
   }
 
-  // Validate coordinates
-  const validCoords = secondaryCoordinates.filter(coord => 
-    Array.isArray(coord) && 
-    coord.length === 2 && 
-    !isNaN(coord[0]) && 
-    !isNaN(coord[1]) &&
-    Math.abs(coord[0]) <= 180 && 
-    Math.abs(coord[1]) <= 90
-  );
-
-  if (validCoords.length === 0) {
-    console.error("❌ No valid coordinates for secondary polyline");
-    return;
-  }
+  // Force opacity to a reasonable minimum to ensure visibility
+  const effectiveOpacity = Math.max(overlayOpacity, 50) / 100;
+  
+  console.log('ADDING SECONDARY POLYLINE WITH', secondaryCoordinates.length, 'POINTS:', 
+    JSON.stringify(secondaryCoordinates.slice(0, 3)));
+  console.log('Using opacity:', effectiveOpacity);
 
   const sourceId = 'secondary-polyline-source';
   const layerId = 'secondary-polyline-layer';
 
-  // Remove existing source and layer if they exist
+  // Clean up existing layers and sources first
   try {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId);
+      console.log("Removed existing secondary polyline layer");
     }
     if (map.getSource(sourceId)) {
       map.removeSource(sourceId);
+      console.log("Removed existing secondary polyline source");
     }
   } catch (error) {
-    console.error("❌ Error removing existing secondary layers:", error);
+    console.error('Error cleaning up secondary polyline layers:', error);
   }
 
   try {
@@ -60,10 +44,11 @@ export const addSecondaryPolyline = (
         properties: {},
         geometry: {
           type: 'LineString',
-          coordinates: validCoords
+          coordinates: secondaryCoordinates
         }
       }
     });
+    console.log("Added secondary polyline source successfully");
 
     map.addLayer({
       id: layerId,
@@ -74,33 +59,34 @@ export const addSecondaryPolyline = (
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#10b981',
-        'line-width': 4,
-        'line-opacity': overlayOpacity / 100
+        'line-color': '#10b981', // Emerald green color
+        'line-width': 6, // Increased width for better visibility
+        'line-opacity': effectiveOpacity
       }
     });
-
-    // Add markers for start and end of secondary route
-    if (validCoords.length >= 2) {
+    console.log("Added secondary polyline layer successfully");
+    
+    // Add start marker for secondary polyline
+    if (secondaryCoordinates.length > 0) {
       try {
-        // Start marker (green with slightly different shade)
-        new maplibregl.Marker({color: '#059669'})
-          .setLngLat(validCoords[0])
+        // Start marker
+        new maplibregl.Marker({ color: '#10b981' })
+          .setLngLat(secondaryCoordinates[0])
           .addTo(map);
         
-        // End marker (orange)
-        new maplibregl.Marker({color: '#f59e0b'})
-          .setLngLat(validCoords[validCoords.length - 1])
+        // End marker
+        new maplibregl.Marker({ color: '#ef4444' })
+          .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
           .addTo(map);
-        
-        console.log("🚩 Added start/end markers for secondary polyline");
-      } catch (err) {
-        console.error("❌ Error adding markers for secondary polyline:", err);
+          
+        console.log("Added markers at start and end points");
+      } catch (markerError) {
+        console.error("Error adding markers:", markerError);
       }
     }
-
-    console.log("✅ Secondary polyline added successfully");
+    
+    console.log('✅ Secondary polyline added successfully');
   } catch (error) {
-    console.error("❌ Error adding secondary polyline to map:", error);
+    console.error('Error adding secondary polyline:', error);
   }
 };

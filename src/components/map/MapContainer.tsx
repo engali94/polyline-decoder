@@ -5,7 +5,6 @@ import MapControls from './MapControls';
 import StyleSelector from './StyleSelector';
 import MapRenderers from './MapRenderers';
 import { useMapStyles } from './MapStyleHooks';
-import { toast } from 'sonner';
 
 interface MapProps {
   coordinates: [number, number][];
@@ -45,26 +44,10 @@ const MapContainer: React.FC<MapProps> = ({
       console.log("Activating split view for side-by-side comparison");
       setSplitViewActive(true);
     } else {
-      if (splitViewActive) {
-        console.log("Deactivating split view");
-      }
+      console.log("Deactivating split view");
       setSplitViewActive(false);
     }
   }, [comparisonMode, localComparisonType]);
-
-  // Handle comparison type changes with better feedback
-  const handleComparisonTypeChange = (type: 'overlay' | 'sideBySide' | 'diff') => {
-    console.log("Comparison type changed to:", type);
-    setLocalComparisonType(type);
-    
-    if (type === 'sideBySide') {
-      if (secondaryCoordinates.length === 0) {
-        toast.error("Side-by-side view requires secondary coordinates");
-      } else {
-        toast.success("Side-by-side comparison activated");
-      }
-    }
-  };
 
   // Log props for debugging
   useEffect(() => {
@@ -73,20 +56,52 @@ const MapContainer: React.FC<MapProps> = ({
       secondaryCoordinatesLength: secondaryCoordinates.length,
       comparisonMode,
       comparisonType: localComparisonType,
-      splitViewActive
+      splitViewActive,
+      overlayOpacity
     });
+  }, [coordinates, secondaryCoordinates, comparisonMode, localComparisonType, splitViewActive, overlayOpacity]);
 
-    // Validate coordinates
-    if (coordinates.length > 0) {
-      const sampleCoord = coordinates[0];
-      console.log("Primary coordinate sample:", sampleCoord);
+  // Style handling for both maps
+  useEffect(() => {
+    if (map.current && styleOptions.length > 0) {
+      const currentStyle = styleOptions.find(style => style.id === currentStyleId);
+      if (currentStyle) {
+        try {
+          map.current.setStyle(currentStyle.url);
+        } catch (error) {
+          console.error('Error setting map style:', error);
+        }
+      }
     }
+
+    if (secondMap.current && styleOptions.length > 0) {
+      const currentStyle = styleOptions.find(style => style.id === currentStyleId);
+      if (currentStyle) {
+        try {
+          secondMap.current.setStyle(currentStyle.url);
+        } catch (error) {
+          console.error('Error setting map style for second map:', error);
+        }
+      }
+    }
+  }, [currentStyleId, styleOptions]);
+
+  // Force redraw on comparison changes
+  useEffect(() => {
+    const redrawTimeout = setTimeout(() => {
+      // Force redraw by triggering a resize event
+      if (map.current) {
+        console.log("Forcing map redraw");
+        map.current.resize();
+      }
+      if (secondMap.current) {
+        console.log("Forcing second map redraw");
+        secondMap.current.resize();
+      }
+    }, 200); // Slightly longer timeout for better rendering
     
-    if (secondaryCoordinates.length > 0) {
-      const sampleCoord = secondaryCoordinates[0];
-      console.log("Secondary coordinate sample:", sampleCoord);
-    }
-  }, [coordinates, secondaryCoordinates, comparisonMode, localComparisonType, splitViewActive]);
+    return () => clearTimeout(redrawTimeout);
+  }, [comparisonMode, comparisonType, secondaryCoordinates, overlayOpacity, splitViewActive]);
 
   return (
     <div className="relative h-full w-full animate-fade-in">
@@ -111,7 +126,7 @@ const MapContainer: React.FC<MapProps> = ({
         comparisonType={localComparisonType}
         splitViewActive={splitViewActive}
         setSplitViewActive={setSplitViewActive}
-        setComparisonType={handleComparisonTypeChange}
+        setComparisonType={setLocalComparisonType}
       />
       
       <StyleSelector

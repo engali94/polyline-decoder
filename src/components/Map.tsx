@@ -24,17 +24,19 @@ const Map: React.FC<MapProps> = ({
   showDivergence = true,
   showIntersections = true
 }) => {
-  // Ensure we have valid data before rendering
-  const validCoordinates = coordinates?.length ? coordinates : [];
-  const validSecondaryCoordinates = secondaryCoordinates?.length ? secondaryCoordinates : [];
-  
-  console.log(`Map rendering with ${validCoordinates.length} primary coordinates and ${validSecondaryCoordinates.length} secondary coordinates`);
-  console.log(`Comparison mode: ${comparisonMode}, type: ${comparisonType}`);
+  // Log props for debugging
+  console.log('Map component props:', {
+    coordinatesCount: coordinates.length,
+    secondaryCoordinatesCount: secondaryCoordinates.length,
+    comparisonMode,
+    comparisonType,
+    overlayOpacity
+  });
 
   return (
-    <MapContainer 
-      coordinates={validCoordinates}
-      secondaryCoordinates={validSecondaryCoordinates}
+    <MapContainer
+      coordinates={coordinates}
+      secondaryCoordinates={secondaryCoordinates}
       isLoading={isLoading}
       comparisonMode={comparisonMode}
       comparisonType={comparisonType}
