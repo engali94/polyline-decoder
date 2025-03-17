@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import MapControls from './MapControls';
@@ -15,6 +14,12 @@ interface MapProps {
   overlayOpacity?: number;
   showDivergence?: boolean;
   showIntersections?: boolean;
+  primaryColor?: string;
+  secondaryColor?: string;
+  primaryLineWidth?: number;
+  secondaryLineWidth?: number;
+  primaryLineDash?: number[];
+  secondaryLineDash?: number[];
 }
 
 const MapContainer: React.FC<MapProps> = ({ 
@@ -25,7 +30,13 @@ const MapContainer: React.FC<MapProps> = ({
   comparisonType = 'overlay',
   overlayOpacity = 50,
   showDivergence = true,
-  showIntersections = true
+  showIntersections = true,
+  primaryColor = '#3b82f6',
+  secondaryColor = '#10b981',
+  primaryLineWidth = 3,
+  secondaryLineWidth = 3,
+  primaryLineDash = [],
+  secondaryLineDash = []
 }) => {
   const map = useRef<maplibregl.Map | null>(null);
   const secondMap = useRef<maplibregl.Map | null>(null);
@@ -57,9 +68,28 @@ const MapContainer: React.FC<MapProps> = ({
       comparisonMode,
       comparisonType: localComparisonType,
       splitViewActive,
-      overlayOpacity
+      overlayOpacity,
+      primaryColor,
+      secondaryColor,
+      primaryLineWidth,
+      secondaryLineWidth,
+      primaryLineDash,
+      secondaryLineDash
     });
-  }, [coordinates, secondaryCoordinates, comparisonMode, localComparisonType, splitViewActive, overlayOpacity]);
+  }, [
+    coordinates, 
+    secondaryCoordinates, 
+    comparisonMode, 
+    localComparisonType, 
+    splitViewActive, 
+    overlayOpacity,
+    primaryColor,
+    secondaryColor,
+    primaryLineWidth,
+    secondaryLineWidth,
+    primaryLineDash,
+    secondaryLineDash
+  ]);
 
   // Style handling for both maps
   useEffect(() => {
@@ -101,7 +131,19 @@ const MapContainer: React.FC<MapProps> = ({
     }, 200); // Slightly longer timeout for better rendering
     
     return () => clearTimeout(redrawTimeout);
-  }, [comparisonMode, comparisonType, secondaryCoordinates, overlayOpacity, splitViewActive]);
+  }, [
+    comparisonMode, 
+    comparisonType, 
+    secondaryCoordinates, 
+    overlayOpacity, 
+    splitViewActive,
+    primaryColor,
+    secondaryColor,
+    primaryLineWidth,
+    secondaryLineWidth,
+    primaryLineDash,
+    secondaryLineDash
+  ]);
 
   return (
     <div className="relative h-full w-full animate-fade-in">
@@ -119,6 +161,12 @@ const MapContainer: React.FC<MapProps> = ({
         currentStyleId={currentStyleId}
         map={map}
         secondMap={secondMap}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        primaryLineWidth={primaryLineWidth}
+        secondaryLineWidth={secondaryLineWidth}
+        primaryLineDash={primaryLineDash}
+        secondaryLineDash={secondaryLineDash}
       />
       
       <MapControls

@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { Split } from 'lucide-react';
@@ -19,6 +18,12 @@ interface MapRenderersProps {
   currentStyleId: string;
   map: React.MutableRefObject<maplibregl.Map | null>;
   secondMap: React.MutableRefObject<maplibregl.Map | null>;
+  primaryColor: string;
+  secondaryColor: string;
+  primaryLineWidth: number;
+  secondaryLineWidth: number;
+  primaryLineDash: number[];
+  secondaryLineDash: number[];
 }
 
 const MapRenderers: React.FC<MapRenderersProps> = ({
@@ -34,7 +39,13 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
   styleOptions,
   currentStyleId,
   map,
-  secondMap
+  secondMap,
+  primaryColor,
+  secondaryColor,
+  primaryLineWidth,
+  secondaryLineWidth,
+  primaryLineDash,
+  secondaryLineDash
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const secondMapContainer = useRef<HTMLDivElement>(null);
@@ -140,6 +151,12 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
         showDivergence={showDivergence}
         showIntersections={showIntersections}
         splitViewActive={splitViewActive}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        primaryLineWidth={primaryLineWidth}
+        secondaryLineWidth={secondaryLineWidth}
+        primaryLineDash={primaryLineDash}
+        secondaryLineDash={secondaryLineDash}
       />
       
       <div className={`h-full w-full ${splitViewActive ? 'hidden md:block md:w-1/2 md:pr-1' : ''}`}>

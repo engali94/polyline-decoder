@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MapContainer from './map/MapContainer';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -12,6 +11,12 @@ interface MapProps {
   overlayOpacity?: number;
   showDivergence?: boolean;
   showIntersections?: boolean;
+  primaryColor?: string;
+  secondaryColor?: string;
+  primaryLineWidth?: number;
+  secondaryLineWidth?: number;
+  primaryLineDash?: number[];
+  secondaryLineDash?: number[];
 }
 
 const Map: React.FC<MapProps> = ({
@@ -22,7 +27,13 @@ const Map: React.FC<MapProps> = ({
   comparisonType = 'overlay',
   overlayOpacity = 50,
   showDivergence = true,
-  showIntersections = true
+  showIntersections = true,
+  primaryColor = '#3b82f6',
+  secondaryColor = '#10b981',
+  primaryLineWidth = 3,
+  secondaryLineWidth = 3,
+  primaryLineDash = [],
+  secondaryLineDash = []
 }) => {
   // Log props for debugging
   console.log('Map component props:', {
@@ -30,7 +41,11 @@ const Map: React.FC<MapProps> = ({
     secondaryCoordinatesCount: secondaryCoordinates.length,
     comparisonMode,
     comparisonType,
-    overlayOpacity
+    overlayOpacity,
+    primaryColor,
+    secondaryColor,
+    primaryLineWidth,
+    secondaryLineWidth
   });
 
   return (
@@ -43,6 +58,12 @@ const Map: React.FC<MapProps> = ({
       overlayOpacity={overlayOpacity}
       showDivergence={showDivergence}
       showIntersections={showIntersections}
+      primaryColor={primaryColor}
+      secondaryColor={secondaryColor}
+      primaryLineWidth={primaryLineWidth}
+      secondaryLineWidth={secondaryLineWidth}
+      primaryLineDash={primaryLineDash}
+      secondaryLineDash={secondaryLineDash}
     />
   );
 };

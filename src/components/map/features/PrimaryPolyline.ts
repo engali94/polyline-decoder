@@ -1,22 +1,25 @@
-
 import * as maplibregl from 'maplibre-gl';
 
 export const addPrimaryPolyline = (
   map: maplibregl.Map,
   coordinates: [number, number][],
-  isLoading: boolean
+  isLoading: boolean,
+  color: string = '#3b82f6',
+  lineWidth: number = 4,
+  lineDash: number[] = []
 ): void => {
   if (isLoading || !coordinates.length) return;
 
   console.log("📍 Adding primary polyline with", coordinates.length, "points");
   console.log("📍 First few coordinates:", coordinates.slice(0, 3));
   console.log("📍 Last few coordinates:", coordinates.slice(-3));
+  console.log("🎨 Using color:", color, "width:", lineWidth, "dash:", lineDash);
 
   // Check if map is loaded and has a style
   if (!map.isStyleLoaded()) {
     console.log("🔄 Map style not loaded yet, waiting...");
     map.once('style.load', () => {
-      addPrimaryPolyline(map, coordinates, isLoading);
+      addPrimaryPolyline(map, coordinates, isLoading, color, lineWidth, lineDash);
     });
     return;
   }
@@ -59,8 +62,9 @@ export const addPrimaryPolyline = (
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#3b82f6',
-        'line-width': 4
+        'line-color': color,
+        'line-width': lineWidth,
+        'line-dasharray': lineDash.length > 0 ? lineDash : undefined
       }
     });
 

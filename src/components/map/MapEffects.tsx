@@ -20,6 +20,12 @@ interface MapEffectsProps {
   showDivergence: boolean;
   showIntersections: boolean;
   splitViewActive: boolean;
+  primaryColor: string;
+  secondaryColor: string;
+  primaryLineWidth: number;
+  secondaryLineWidth: number;
+  primaryLineDash: number[];
+  secondaryLineDash: number[];
 }
 
 const MapEffects = (props: MapEffectsProps) => {
@@ -34,7 +40,13 @@ const MapEffects = (props: MapEffectsProps) => {
     overlayOpacity,
     showDivergence,
     showIntersections,
-    splitViewActive
+    splitViewActive,
+    primaryColor,
+    secondaryColor,
+    primaryLineWidth,
+    secondaryLineWidth,
+    primaryLineDash,
+    secondaryLineDash
   } = props;
 
   // Validate coordinates - simplify validation to boolean
@@ -68,7 +80,10 @@ const MapEffects = (props: MapEffectsProps) => {
     map,
     coordinates,
     isLoading,
-    validCoordinates
+    validCoordinates,
+    color: primaryColor,
+    lineWidth: primaryLineWidth,
+    lineDash: primaryLineDash
   });
 
   // Secondary polyline and comparison mode effects
@@ -83,7 +98,10 @@ const MapEffects = (props: MapEffectsProps) => {
     showDivergence,
     showIntersections,
     splitViewActive,
-    validSecondaryCoords
+    validSecondaryCoords,
+    color: secondaryColor,
+    lineWidth: secondaryLineWidth,
+    lineDash: secondaryLineDash
   });
 
   // Second map effect for side-by-side view
@@ -92,7 +110,10 @@ const MapEffects = (props: MapEffectsProps) => {
     secondaryCoordinates,
     splitViewActive,
     comparisonMode,
-    validSecondaryCoords
+    validSecondaryCoords,
+    color: secondaryColor,
+    lineWidth: secondaryLineWidth,
+    lineDash: secondaryLineDash
   });
 
   return null;

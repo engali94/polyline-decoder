@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import Map from '../components/Map';
 import PolylineInput from '../components/PolylineInput';
@@ -6,6 +6,7 @@ import PolylineComparison from '../components/PolylineComparison';
 import Statistics from '../components/Statistics';
 import ExportOptions from '../components/ExportOptions';
 import CoordinatesViewer from '../components/CoordinatesViewer';
+import AdvancedFeatures from '../components/AdvancedFeatures';
 import { usePolyline } from '../hooks/usePolyline';
 import { usePolylineComparison } from '../hooks/usePolylineComparison';
 
@@ -38,6 +39,14 @@ const Index = () => {
     setShowIntersections
   } = usePolylineComparison();
   
+  // Add styling state
+  const [primaryColor, setPrimaryColor] = useState('#3b82f6');
+  const [secondaryColor, setSecondaryColor] = useState('#10b981');
+  const [primaryLineWidth, setPrimaryLineWidth] = useState(3);
+  const [secondaryLineWidth, setSecondaryLineWidth] = useState(3);
+  const [primaryLineDash, setPrimaryLineDash] = useState<number[]>([]);
+  const [secondaryLineDash, setSecondaryLineDash] = useState<number[]>([]);
+  
   return (
     <div className="flex flex-col h-screen p-4 md:p-6 max-w-7xl mx-auto">
       <Header />
@@ -53,6 +62,12 @@ const Index = () => {
             overlayOpacity={overlayOpacity}
             showDivergence={showDivergence}
             showIntersections={showIntersections}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+            primaryLineWidth={primaryLineWidth}
+            secondaryLineWidth={secondaryLineWidth}
+            primaryLineDash={primaryLineDash}
+            secondaryLineDash={secondaryLineDash}
           />
         </div>
         
@@ -84,7 +99,30 @@ const Index = () => {
             setPrecision={setPrecision}
           />
           
-          <Statistics coordinates={coordinates} distance={distance} />
+          <Statistics 
+            coordinates={coordinates} 
+            secondaryCoordinates={secondaryCoordinates}
+            distance={distance} 
+          />
+          
+          <AdvancedFeatures
+            primaryCoordinates={coordinates}
+            secondaryCoordinates={secondaryCoordinates}
+            precision={precision}
+            setPrecision={setPrecision}
+            primaryColor={primaryColor}
+            setPrimaryColor={setPrimaryColor}
+            secondaryColor={secondaryColor}
+            setSecondaryColor={setSecondaryColor}
+            primaryLineWidth={primaryLineWidth}
+            setPrimaryLineWidth={setPrimaryLineWidth}
+            secondaryLineWidth={secondaryLineWidth}
+            setSecondaryLineWidth={setSecondaryLineWidth}
+            primaryLineDash={primaryLineDash}
+            setPrimaryLineDash={setPrimaryLineDash}
+            secondaryLineDash={secondaryLineDash}
+            setSecondaryLineDash={setSecondaryLineDash}
+          />
           
           <CoordinatesViewer 
             primaryCoordinates={coordinates} 
