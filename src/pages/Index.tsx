@@ -48,11 +48,11 @@ const Index = () => {
   const [secondaryLineDash, setSecondaryLineDash] = useState<number[]>([]);
   
   return (
-    <div className="flex flex-col h-screen p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="flex flex-col h-screen p-2 md:p-3 max-w-full mx-auto">
       <Header />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 overflow-hidden">
-        <div className="lg:col-span-2 h-[calc(100vh-13rem)] rounded-xl overflow-hidden relative">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 flex-1 overflow-hidden">
+        <div className="lg:col-span-3 h-[calc(100vh-12rem)] rounded-xl overflow-hidden relative">
           <Map 
             coordinates={coordinates} 
             secondaryCoordinates={secondaryCoordinates}
@@ -71,7 +71,7 @@ const Index = () => {
           />
         </div>
         
-        <div className="space-y-4 overflow-y-auto h-[calc(100vh-13rem)] pr-1 scrollbar-hide">
+        <div className="space-y-3 overflow-y-auto h-[calc(100vh-12rem)] pr-1 scrollbar-hide">
           <PolylineInput 
             value={polyline} 
             onChange={setPolyline} 

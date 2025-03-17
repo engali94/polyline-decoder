@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { loadCustomStyles } from '../../utils/mapStyles';
 import { StyleOption } from './StyleSelector';
 
 export const useMapStyles = () => {
   const [styleOptions, setStyleOptions] = useState<StyleOption[]>([]);
-  const [currentStyleId, setCurrentStyleId] = useState<string>('osm');
+  const [currentStyleId, setCurrentStyleId] = useState<string>('voyager');
 
   useEffect(() => {
     const builtInStyles = Object.entries(mapStyles).map(([id, style]) => ({
@@ -31,5 +30,5 @@ export const useMapStyles = () => {
     setCurrentStyleId
   };
 };
-
 import { mapStyles } from '../../utils/mapStyles';
+
