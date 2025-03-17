@@ -88,6 +88,18 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
     { name: 'Contrast', primaryDash: [], secondaryDash: [6, 2] }
   ];
 
+  // Log initial state for debugging
+  useEffect(() => {
+    console.log("Advanced Features Component State:", {
+      primaryLineDash,
+      secondaryLineDash,
+      primaryColor,
+      secondaryColor,
+      primaryLineWidth,
+      secondaryLineWidth
+    });
+  }, [primaryLineDash, secondaryLineDash, primaryColor, secondaryColor, primaryLineWidth, secondaryLineWidth]);
+
   // Calculate similarity score between primary and secondary polylines
   const calculateSimilarityScore = () => {
     if (primaryCoordinates.length === 0 || secondaryCoordinates.length === 0) {
