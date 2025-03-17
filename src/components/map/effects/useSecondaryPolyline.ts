@@ -19,6 +19,9 @@ interface UseSecondaryPolylineProps {
   showIntersections: boolean;
   splitViewActive: boolean;
   validSecondaryCoords: boolean;
+  color?: string;
+  lineWidth?: number;
+  lineDash?: number[];
 }
 
 export const useSecondaryPolyline = ({
@@ -33,6 +36,9 @@ export const useSecondaryPolyline = ({
   showIntersections,
   splitViewActive,
   validSecondaryCoords,
+  color = '#10b981',
+  lineWidth = 8,
+  lineDash = []
 }: UseSecondaryPolylineProps) => {
   
   useEffect(() => {
@@ -77,12 +83,15 @@ export const useSecondaryPolyline = ({
         comparisonType,
         overlayOpacity,
         coordCount: secondaryCoordinates.length,
-        sampleCoords: JSON.stringify(secondaryCoordinates.slice(0, 2))
+        sampleCoords: JSON.stringify(secondaryCoordinates.slice(0, 2)),
+        color,
+        lineWidth,
+        lineDash
       });
       
       // For overlay and diff mode, always show the secondary polyline
       if (comparisonType === 'overlay' || comparisonType === 'diff') {
-        addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity);
+        addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity, color, lineWidth, lineDash);
         
         // In diff mode, also show the analysis
         if (comparisonType === 'diff') {
@@ -115,7 +124,15 @@ export const useSecondaryPolyline = ({
         // Immediately re-add primary polyline to prevent it from disappearing
         if (coordinates.length > 0) {
           console.log("Re-adding primary polyline after cleanup");
-          addPrimaryPolyline(map.current, coordinates, false);
+          // Pass primary line styling from Index.tsx via MapContainer props
+          addPrimaryPolyline(
+            map.current, 
+            coordinates, 
+            false, 
+            '#3b82f6',  // Default primary color 
+            3,          // Default primary line width
+            []          // Default solid line (empty array for no dash)
+          );
         }
       }
     };
@@ -130,6 +147,9 @@ export const useSecondaryPolyline = ({
     coordinates,
     map,
     isLoading,
-    validSecondaryCoords
+    validSecondaryCoords,
+    color,
+    lineWidth,
+    lineDash
   ]);
 };

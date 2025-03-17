@@ -7,6 +7,9 @@ interface UseSideBySideViewProps {
   splitViewActive: boolean;
   comparisonMode: boolean;
   validSecondaryCoords: boolean;
+  color?: string;
+  lineWidth?: number;
+  lineDash?: number[];
 }
 
 export const useSideBySideView = ({
@@ -14,7 +17,10 @@ export const useSideBySideView = ({
   secondaryCoordinates,
   splitViewActive,
   comparisonMode,
-  validSecondaryCoords
+  validSecondaryCoords,
+  color = '#10b981',
+  lineWidth = 8,
+  lineDash = []
 }: UseSideBySideViewProps) => {
   
   useEffect(() => {
@@ -24,7 +30,10 @@ export const useSideBySideView = ({
       comparisonMode,
       secondaryCoordinatesLength: secondaryCoordinates?.length || 0,
       hasCoords: secondaryCoordinates && secondaryCoordinates.length > 0,
-      sampleCoords: JSON.stringify(secondaryCoordinates?.slice(0, 2) || [])
+      sampleCoords: JSON.stringify(secondaryCoordinates?.slice(0, 2) || []),
+      color,
+      lineWidth,
+      lineDash
     });
 
     if (!secondMap.current) {
@@ -86,15 +95,16 @@ export const useSideBySideView = ({
             'line-cap': 'round'
           },
           paint: {
-            'line-color': '#10b981', // Emerald green
-            'line-width': 8,         // Wider line for better visibility
-            'line-opacity': 1        // Full opacity
+            'line-color': color,
+            'line-width': lineWidth,
+            'line-opacity': 1,
+            ...(lineDash.length > 0 ? { 'line-dasharray': lineDash } : {})
           }
         });
         console.log("✅ Added polyline layer to second map");
 
         if (secondaryCoordinates.length > 0) {
-          new maplibregl.Marker({ color: '#10b981' }) // Green start marker
+          new maplibregl.Marker({ color }) // Green start marker
             .setLngLat(secondaryCoordinates[0])
             .addTo(secondMap.current);
             
@@ -191,5 +201,14 @@ export const useSideBySideView = ({
         }
       }
     };
-  }, [secondaryCoordinates, splitViewActive, secondMap, comparisonMode, validSecondaryCoords]);
+  }, [
+    secondaryCoordinates, 
+    splitViewActive, 
+    secondMap, 
+    comparisonMode, 
+    validSecondaryCoords,
+    color,
+    lineWidth,
+    lineDash
+  ]);
 };

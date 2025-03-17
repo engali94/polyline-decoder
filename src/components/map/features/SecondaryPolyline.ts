@@ -3,39 +3,34 @@ import * as maplibregl from 'maplibre-gl';
 export const addSecondaryPolyline = (
   map: maplibregl.Map,
   secondaryCoordinates: [number, number][],
-  overlayOpacity: number
+  overlayOpacity: number,
+  color: string = '#10b981',
+  lineWidth: number = 8,
+  lineDash: number[] = []
 ): void => {
-  if (!secondaryCoordinates || secondaryCoordinates.length < 2) {
-    console.warn('Secondary polyline coordinates invalid or insufficient:', secondaryCoordinates);
+  if (!secondaryCoordinates || !secondaryCoordinates.length) {
+    console.log("No secondary coordinates provided");
     return;
   }
 
-  // Force opacity to a higher minimum to ensure visibility
-  const effectiveOpacity = Math.max(overlayOpacity, 70) / 100;
-  
-  console.log('ADDING SECONDARY POLYLINE WITH', secondaryCoordinates.length, 'POINTS:', 
-    JSON.stringify(secondaryCoordinates.slice(0, 3)));
-  console.log('Using opacity:', effectiveOpacity);
-
   const sourceId = 'secondary-polyline-source';
   const layerId = 'secondary-polyline-layer';
+  const effectiveOpacity = overlayOpacity / 100;
 
-  // Clean up existing layers and sources first
+  // Clear any existing secondary polyline
   try {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId);
-      console.log("Removed existing secondary polyline layer");
     }
     if (map.getSource(sourceId)) {
       map.removeSource(sourceId);
-      console.log("Removed existing secondary polyline source");
     }
   } catch (error) {
-    console.error('Error cleaning up secondary polyline layers:', error);
+    console.error("Error cleaning up existing secondary polyline:", error);
   }
 
   try {
-    // Add the new source and layer
+    // Add the GeoJSON source for the secondary polyline
     map.addSource(sourceId, {
       type: 'geojson',
       data: {
@@ -58,9 +53,10 @@ export const addSecondaryPolyline = (
         'line-cap': 'round'
       },
       paint: {
-        'line-color': '#10b981', // Emerald green color
-        'line-width': 8, // Increased width for better visibility
-        'line-opacity': effectiveOpacity
+        'line-color': color,
+        'line-width': lineWidth,
+        'line-opacity': effectiveOpacity,
+        ...(lineDash.length > 0 ? { 'line-dasharray': lineDash } : {})
       }
     });
     console.log("Added secondary polyline layer successfully");
@@ -69,7 +65,7 @@ export const addSecondaryPolyline = (
     if (secondaryCoordinates.length > 0) {
       try {
         // Start marker
-        new maplibregl.Marker({ color: '#10b981' })
+        new maplibregl.Marker({ color })
           .setLngLat(secondaryCoordinates[0])
           .addTo(map);
         
@@ -78,14 +74,12 @@ export const addSecondaryPolyline = (
           .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
           .addTo(map);
           
-        console.log("Added markers at start and end points");
+        console.log("Added start/end markers for secondary polyline");
       } catch (markerError) {
         console.error("Error adding markers:", markerError);
       }
     }
-    
-    console.log('✅ Secondary polyline added successfully');
   } catch (error) {
-    console.error('Error adding secondary polyline:', error);
+    console.error("Error adding secondary polyline:", error);
   }
 };

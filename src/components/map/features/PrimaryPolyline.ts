@@ -64,7 +64,7 @@ export const addPrimaryPolyline = (
       paint: {
         'line-color': color,
         'line-width': lineWidth,
-        'line-dasharray': lineDash.length > 0 ? lineDash : undefined
+        ...(lineDash.length > 0 ? { 'line-dasharray': lineDash } : {})
       }
     });
 

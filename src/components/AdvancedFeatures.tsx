@@ -145,6 +145,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
 
   // Apply a line style
   const applyLineStyle = (style: { name: string, primaryDash: number[], secondaryDash: number[] }) => {
+    console.log(`Applying ${style.name} line style:`, style);
     setPrimaryLineDash(style.primaryDash);
     setSecondaryLineDash(style.secondaryDash);
     toast.success(`Applied ${style.name} line style`);
