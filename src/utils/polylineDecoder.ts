@@ -42,6 +42,51 @@ export function decodePolyline(encoded: string, precision: number = 5): [number,
   return decoded;
 }
 
+export function encodePolyline(coordinates: [number, number][], precision: number = 5): string {
+  if (!coordinates || coordinates.length === 0) {
+    return '';
+  }
+
+  const mul = Math.pow(10, precision);
+  let prevLat = 0;
+  let prevLng = 0;
+  let encoded = '';
+
+  for (const [lng, lat] of coordinates) {
+    // Convert to integers scaled by precision factor
+    const latInt = Math.round(lat * mul);
+    const lngInt = Math.round(lng * mul);
+    
+    // Encode deltas
+    encoded += encodeNumber(latInt - prevLat);
+    encoded += encodeNumber(lngInt - prevLng);
+    
+    // Remember these for next pair
+    prevLat = latInt;
+    prevLng = lngInt;
+  }
+
+  return encoded;
+}
+
+function encodeNumber(num: number): string {
+  // Convert the signed number to a zigzag encoded unsigned number
+  num = (num < 0) ? ~(num << 1) : (num << 1);
+  
+  let encoded = '';
+  
+  // Process each 5-bit chunk
+  while (num >= 0x20) {
+    encoded += String.fromCharCode((0x20 | (num & 0x1f)) + 63);
+    num >>= 5;
+  }
+  
+  // Add the final chunk
+  encoded += String.fromCharCode(num + 63);
+  
+  return encoded;
+}
+
 export function calculateDistance(coordinates: [number, number][]): number {
   if (coordinates.length < 2) return 0;
 
