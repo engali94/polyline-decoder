@@ -16,11 +16,15 @@ const Index = () => {
     polyline,
     setPolyline,
     coordinates,
+    setCoordinatesFromText,
     distance,
     isDecoding,
+    isEncoding,
     handleClear,
     precision,
-    setPrecision
+    setPrecision,
+    mode,
+    toggleMode
   } = usePolyline();
 
   const {
@@ -56,7 +60,7 @@ const Index = () => {
           <Map 
             coordinates={coordinates} 
             secondaryCoordinates={secondaryCoordinates}
-            isLoading={isDecoding}
+            isLoading={isDecoding || isEncoding}
             comparisonMode={comparisonMode}
             comparisonType={comparisonType}
             overlayOpacity={overlayOpacity}
@@ -78,6 +82,10 @@ const Index = () => {
             onClear={handleClear}
             precision={precision}
             onPrecisionChange={setPrecision}
+            mode={mode}
+            onModeChange={toggleMode}
+            isEncoding={isEncoding}
+            onCoordinatesInput={setCoordinatesFromText}
           />
           
           <PolylineComparison

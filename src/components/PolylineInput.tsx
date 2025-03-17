@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Trash2, Copy, Sparkles, Scaling } from 'lucide-react';
+import { Trash2, Copy, Sparkles, ArrowDownUp, Upload, Download } from 'lucide-react';
 import { 
   Select,
   SelectContent,
@@ -8,6 +8,9 @@ import {
   SelectTrigger,
   SelectValue 
 } from './ui/select';
+import { Textarea } from './ui/textarea';
+import { Input } from './ui/input';
+import { Switch } from './ui/switch';
 
 interface PolylineInputProps {
   value: string;
@@ -15,6 +18,10 @@ interface PolylineInputProps {
   onClear: () => void;
   precision?: number;
   onPrecisionChange?: (precision: number) => void;
+  mode?: 'decode' | 'encode';
+  onModeChange?: () => void;
+  isEncoding?: boolean;
+  onCoordinatesInput?: (text: string) => void;
 }
 
 const PolylineInput: React.FC<PolylineInputProps> = ({ 
@@ -22,24 +29,50 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
   onChange, 
   onClear,
   precision = 5, 
-  onPrecisionChange 
+  onPrecisionChange,
+  mode = 'decode',
+  onModeChange,
+  isEncoding = false,
+  onCoordinatesInput
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [coordinatesText, setCoordinatesText] = useState('');
   
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
-      onChange(text);
+      if (mode === 'decode') {
+        onChange(text);
+      } else {
+        setCoordinatesText(text);
+      }
     } catch (err) {
       console.error('Failed to read clipboard contents: ', err);
+    }
+  };
+
+  const handleCoordinatesSubmit = () => {
+    if (onCoordinatesInput && coordinatesText) {
+      onCoordinatesInput(coordinatesText);
     }
   };
 
   return (
     <div className={`panel transition-all duration-300 ${isFocused ? 'ring-1 ring-primary/20' : ''}`}>
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-1">
-          <span className="bg-primary/10 px-2 py-0.5 rounded-full text-xs font-medium text-primary">Input</span>
+        <div className="flex items-center space-x-2">
+          <span className="bg-primary/10 px-2 py-0.5 rounded-full text-xs font-medium text-primary">
+            {mode === 'decode' ? 'Decode' : 'Encode'}
+          </span>
+          {onModeChange && (
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-muted-foreground">{mode === 'decode' ? 'Polyline → Coordinates' : 'Coordinates → Polyline'}</span>
+              <div className="flex items-center space-x-1">
+                <Switch checked={mode === 'encode'} onCheckedChange={onModeChange} />
+                <ArrowDownUp className="h-3 w-3 text-muted-foreground" />
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex items-center space-x-1">
           {onPrecisionChange && (
@@ -66,24 +99,50 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
           <button
             onClick={onClear}
             className="p-1.5 text-muted-foreground hover:text-destructive rounded-md transition-colors"
-            disabled={!value}
+            disabled={!value && !coordinatesText}
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        placeholder="Paste your encoded polyline here..."
-        className="w-full h-24 resize-none bg-transparent border-0 p-0 placeholder:text-muted-foreground focus:ring-0 focus:outline-none text-sm font-mono"
-      />
+      
+      {mode === 'decode' ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="Paste your encoded polyline here..."
+          className="w-full h-24 resize-none bg-transparent border-0 p-0 placeholder:text-muted-foreground focus:ring-0 focus:outline-none text-sm font-mono"
+        />
+      ) : (
+        <div>
+          <textarea
+            value={coordinatesText}
+            onChange={(e) => setCoordinatesText(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder="Paste your coordinates here (format: longitude,latitude or one coordinate per line)..."
+            className="w-full h-24 resize-none bg-transparent border-0 p-0 placeholder:text-muted-foreground focus:ring-0 focus:outline-none text-sm font-mono"
+          />
+          <div className="mt-2 flex justify-end">
+            <button
+              onClick={handleCoordinatesSubmit}
+              disabled={!coordinatesText || isEncoding}
+              className="p-1.5 text-xs flex items-center space-x-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors disabled:opacity-50"
+            >
+              <Upload className="h-3 w-3 mr-1" />
+              <span>{isEncoding ? 'Encoding...' : 'Encode'}</span>
+            </button>
+          </div>
+        </div>
+      )}
       
       <div className="mt-2 flex justify-between items-center">
         <div className="text-xs text-muted-foreground">
-          {value ? `${value.length} characters` : 'No polyline data'}
+          {mode === 'decode'
+            ? (value ? `${value.length} characters` : 'No polyline data')
+            : (value ? `Encoded polyline (${value.length} chars)` : 'No encoded result yet')}
         </div>
         <div className="flex space-x-1">
           {value && (
@@ -96,7 +155,13 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
             </button>
           )}
           <button 
-            onClick={() => onChange('_p~iF~ps|U_ulLnnqC_mqNvxq`@')} 
+            onClick={() => {
+              if (mode === 'decode') {
+                onChange('_p~iF~ps|U_ulLnnqC_mqNvxq`@');
+              } else {
+                setCoordinatesText('-122.4194,37.7749\n-122.4099,37.7912\n-122.4330,37.7866');
+              }
+            }} 
             className="p-1.5 text-xs flex items-center space-x-1 bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-colors"
           >
             <Sparkles className="h-3 w-3 mr-1" />
