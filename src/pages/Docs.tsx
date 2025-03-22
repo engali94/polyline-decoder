@@ -58,7 +58,7 @@ const Docs = () => {
                 <div className="space-y-1">
                   <p className="text-xs">Encoded polyline (precision 5):</p>
                   <pre className="bg-slate-100 p-2 rounded text-xs overflow-x-auto">
-                    _p~iF~ps|U_ulLnnqC_mqNvxq`@
+                    {`}~kvHmzrr@ba\\hnc@jiu@r{Zqx~@hjp@pwEhnc@zhu@zflAbxn@fhjBvqHroaAgcnAp}gAeahAtqGkngAinc@_h|@r{Zad\\y|_D}_y@swg@ysg@}llBpoZqa{@xrw@~eBaaX}{uAero@uqGadY}nr@\`dYs_NquNgbjAf{l@|yh@bfc@}nr@z}q@i|i@zgz@r{ZhjFr}gApob@ff}@laIsen@dgYhdPvbIren@`}
                   </pre>
                 </div>
               </div>
@@ -90,7 +90,7 @@ const Docs = () => {
                 <div className="space-y-1">
                   <p className="text-xs">Encoded polyline:</p>
                   <pre className="bg-slate-100 p-2 rounded text-xs overflow-x-auto">
-                    _p~iF~ps|U_ulLnnqC_mqNvxq`@
+                    {`}~kvHmzrr@ba\\hnc@jiu@r{Zqx~@hjp@pwEhnc@zhu@zflAbxn@fhjBvqHroaAgcnAp}gAeahAtqGkngAinc@_h|@r{Zad\\y|_D}_y@swg@ysg@}llBpoZqa{@xrw@~eBaaX}{uAero@uqGadY}nr@\`dYs_NquNgbjAf{l@|yh@bfc@}nr@z}q@i|i@zgz@r{ZhjFr}gApob@ff}@laIsen@dgYhdPvbIren@`}
                   </pre>
                 </div>
                 <div className="space-y-1">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { decodePolyline, calculateDistance } from '../utils/polylineDecoder';
 import ComparisonHeader from './comparison/ComparisonHeader';
@@ -59,7 +58,6 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
   
   const chartData = generateChartData(primaryCoordinates, secondaryCoordinates);
   
-  // Enable comparison mode automatically when secondary polyline is entered
   useEffect(() => {
     if (secondaryPolyline && !comparisonMode) {
       setComparisonMode(true);
@@ -67,7 +65,6 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
     }
   }, [secondaryPolyline, comparisonMode, setComparisonMode]);
 
-  // Keep activeTab in sync with comparisonType
   useEffect(() => {
     setActiveTab(comparisonType);
   }, [comparisonType]);

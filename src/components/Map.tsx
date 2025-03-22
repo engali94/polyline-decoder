@@ -35,7 +35,6 @@ const Map: React.FC<MapProps> = ({
   primaryLineDash = [],
   secondaryLineDash = []
 }) => {
-  // Log props for debugging
   console.log('Map component props:', {
     coordinatesCount: coordinates.length,
     secondaryCoordinatesCount: secondaryCoordinates.length,

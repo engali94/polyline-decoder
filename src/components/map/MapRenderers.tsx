@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { Split } from 'lucide-react';
 import { StyleOption } from './StyleSelector';
-import MapEffects from './MapEffects';  // Using default import
+import MapEffects from './MapEffects';
 
 interface MapRenderersProps {
   coordinates: [number, number][];
@@ -50,7 +50,6 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const secondMapContainer = useRef<HTMLDivElement>(null);
 
-  // Initialize primary map
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -76,12 +75,10 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
     };
   }, [styleOptions.length, map, currentStyleId]);
 
-  // Initialize secondary map for side-by-side view
   useEffect(() => {
     console.log("Split view active changed:", splitViewActive, "Comparison mode:", comparisonMode);
     
     if (!splitViewActive || !secondMapContainer.current) {
-      // Clean up second map if split view is deactivated
       if (secondMap.current) {
         console.log("Removing second map as split view is deactivated");
         secondMap.current.remove();
@@ -122,7 +119,6 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
       syncMaps(secondMap.current, map.current);
     }
 
-    // Force initial second map render
     setTimeout(() => {
       if (secondMap.current) {
         secondMap.current.resize();

@@ -15,7 +15,6 @@ export const addPrimaryPolyline = (
   console.log("📍 Last few coordinates:", coordinates.slice(-3));
   console.log("🎨 Using color:", color, "width:", lineWidth, "dash:", lineDash);
 
-  // Check if map is loaded and has a style
   if (!map.isStyleLoaded()) {
     console.log("🔄 Map style not loaded yet, waiting...");
     map.once('style.load', () => {
@@ -27,7 +26,6 @@ export const addPrimaryPolyline = (
   const sourceId = 'polyline-source';
   const layerId = 'polyline-layer';
 
-  // Remove existing source and layer if they exist
   try {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId);
@@ -40,7 +38,6 @@ export const addPrimaryPolyline = (
   }
 
   try {
-    // Add the new source and layer
     map.addSource(sourceId, {
       type: 'geojson',
       data: {
@@ -68,9 +65,7 @@ export const addPrimaryPolyline = (
       }
     });
 
-    // Create bounds for visible map area
     if (coordinates.length > 0) {
-      // Detect if these are likely Saudi Arabia coordinates
       const isSaudiArabia = coordinates.some(([lng, lat]) => 
         lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50
       );
@@ -78,13 +73,11 @@ export const addPrimaryPolyline = (
       if (isSaudiArabia) {
         console.log("🇸🇦 Saudi Arabia coordinates detected - using optimized view");
         
-        // Immediately center the map on the first coordinate
         map.jumpTo({
           center: coordinates[0],
           zoom: 14  // Start with a closer zoom
         });
         
-        // Then fit bounds with padding
         const bounds = new maplibregl.LngLatBounds();
         for (const coord of coordinates) {
           bounds.extend(coord as [number, number]);
@@ -96,7 +89,6 @@ export const addPrimaryPolyline = (
           duration: 500
         });
       } else {
-        // Regular worldwide coordinates
         const bounds = new maplibregl.LngLatBounds();
         let validCoords = false;
         
@@ -112,7 +104,6 @@ export const addPrimaryPolyline = (
         if (validCoords) {
           console.log("🗺️ Fitting to bounds:", bounds.toString());
           
-          // Immediately jump to the approximate center first
           const center = [
             (bounds.getEast() + bounds.getWest()) / 2,
             (bounds.getNorth() + bounds.getSouth()) / 2
@@ -122,14 +113,12 @@ export const addPrimaryPolyline = (
             zoom: 7
           });
           
-          // Then fit bounds with a short animation
           map.fitBounds(bounds, {
             padding: 50,
             maxZoom: 15,
             duration: 500
           });
         } else if (coordinates.length === 1) {
-          // If we have just one coordinate, center immediately
           console.log("📍 Centering on single coordinate:", coordinates[0]);
           map.jumpTo({
             center: coordinates[0],
@@ -139,14 +128,11 @@ export const addPrimaryPolyline = (
       }
     }
     
-    // Add markers at start and end of route for better visibility
     if (coordinates.length >= 2) {
-      // Start marker (green)
       new maplibregl.Marker({color: '#10b981'})
         .setLngLat(coordinates[0])
         .addTo(map);
       
-      // End marker (red)
       new maplibregl.Marker({color: '#ef4444'})
         .setLngLat(coordinates[coordinates.length - 1])
         .addTo(map);

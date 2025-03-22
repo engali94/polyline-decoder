@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet';
 import Header from '../components/Header';
 import Map from '../components/Map';
 import PolylineInput from '../components/PolylineInput';
@@ -53,6 +54,17 @@ const Index = () => {
   
   return (
     <div className="flex flex-col h-screen p-2 md:p-3 max-w-full mx-auto">
+      <Helmet>
+        <title>Free Online Polyline Decoder, Encoder & Visualizer | Interactive Map Visualization Tool</title>
+        <meta name="description" content="Decode, encode and visualize Google polylines instantly with our free online tool. Interactive map visualization for routes, compare multiple polylines, and export to various formats." />
+        <meta name="keywords" content="online polyline decoder, polyline encoder, polyline visualizer, google polyline, decode polyline, encode polyline, polyline map visualization, polyline tool, interactive map, polyline converter" />
+        <link rel="canonical" href="https://polylinedecoder.online" />
+        <meta property="og:title" content="Free Online Polyline Decoder, Encoder & Visualizer | Interactive Map Tool" />
+        <meta property="og:description" content="Decode, encode and visualize Google polylines instantly with our free online tool. Interactive map visualization for routes and GPS tracks." />
+        <meta name="twitter:title" content="Free Online Polyline Decoder, Encoder & Visualizer Tool" />
+        <meta name="twitter:description" content="Decode, encode and visualize Google polylines with interactive maps. Visualize routes and export to various formats." />
+      </Helmet>
+      
       <Header />
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 flex-1 overflow-hidden">

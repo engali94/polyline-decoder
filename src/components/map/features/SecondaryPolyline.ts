@@ -17,7 +17,6 @@ export const addSecondaryPolyline = (
   const layerId = 'secondary-polyline-layer';
   const effectiveOpacity = overlayOpacity / 100;
 
-  // Clear any existing secondary polyline
   try {
     if (map.getLayer(layerId)) {
       map.removeLayer(layerId);
@@ -30,7 +29,6 @@ export const addSecondaryPolyline = (
   }
 
   try {
-    // Add the GeoJSON source for the secondary polyline
     map.addSource(sourceId, {
       type: 'geojson',
       data: {
@@ -61,15 +59,12 @@ export const addSecondaryPolyline = (
     });
     console.log("Added secondary polyline layer successfully");
     
-    // Add start marker for secondary polyline
     if (secondaryCoordinates.length > 0) {
       try {
-        // Start marker
         new maplibregl.Marker({ color })
           .setLngLat(secondaryCoordinates[0])
           .addTo(map);
         
-        // End marker
         new maplibregl.Marker({ color: '#ef4444' })
           .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
           .addTo(map);

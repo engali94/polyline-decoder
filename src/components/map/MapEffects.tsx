@@ -55,7 +55,6 @@ const MapEffects = (props: MapEffectsProps) => {
     secondaryCoordinates
   );
 
-  // Auto-alignment handler
   const handleAutoAlign = useAutoAlign({
     map,
     secondMap,
@@ -67,7 +66,6 @@ const MapEffects = (props: MapEffectsProps) => {
     validSecondaryCoords
   });
 
-  // Set up auto-align event listener
   useEffect(() => {
     window.addEventListener('auto-align-maps', handleAutoAlign as EventListener);
     return () => {
@@ -75,7 +73,6 @@ const MapEffects = (props: MapEffectsProps) => {
     };
   }, [handleAutoAlign]);
 
-  // Primary polyline effect
   usePrimaryPolyline({
     map,
     coordinates,
@@ -86,7 +83,6 @@ const MapEffects = (props: MapEffectsProps) => {
     lineDash: primaryLineDash
   });
 
-  // Secondary polyline and comparison mode effects
   useSecondaryPolyline({
     map,
     coordinates,
@@ -119,6 +115,5 @@ const MapEffects = (props: MapEffectsProps) => {
   return null;
 };
 
-// Export as both named and default export to ensure compatibility
 export { MapEffects };
 export default MapEffects;

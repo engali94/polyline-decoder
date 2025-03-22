@@ -5,16 +5,14 @@ import { toast } from 'sonner';
 type ComparisonType = 'overlay' | 'sideBySide' | 'diff';
 
 export function usePolylineComparison() {
-  // Set comparison mode to false by default
   const [comparisonMode, setComparisonMode] = useState(false);
   const [secondaryPolyline, setSecondaryPolyline] = useState('');
   const [secondaryCoordinates, setSecondaryCoordinates] = useState<[number, number][]>([]);
   const [comparisonType, setComparisonType] = useState<ComparisonType>('overlay');
-  const [overlayOpacity, setOverlayOpacity] = useState(80); // Increased default opacity for better visibility
+  const [overlayOpacity, setOverlayOpacity] = useState(80);
   const [showDivergence, setShowDivergence] = useState(true);
   const [showIntersections, setShowIntersections] = useState(true);
   
-  // Decode secondary polyline for comparison features
   useEffect(() => {
     console.log("Secondary polyline changed:", secondaryPolyline.substring(0, 20) + (secondaryPolyline.length > 20 ? "..." : ""));
     
@@ -27,14 +25,12 @@ export function usePolylineComparison() {
     try {
       const decodedCoordinates = decodePolyline(secondaryPolyline);
       
-      // Quick validation
       if (!decodedCoordinates || !Array.isArray(decodedCoordinates) || decodedCoordinates.length < 2) {
         console.warn("Invalid secondary polyline: not enough coordinates");
         toast.error('Invalid polyline format - needs at least 2 points');
         return;
       }
       
-      // Log coordinates for debugging
       console.log("Secondary polyline decoded:", decodedCoordinates.length, "points");
       console.log("Sample coordinates:", JSON.stringify(decodedCoordinates.slice(0, 3)));
       console.log("First coordinate:", decodedCoordinates[0], 
@@ -60,13 +56,11 @@ export function usePolylineComparison() {
   };
 
   const handleComparisonToggle = (value: boolean) => {
-    // Direct boolean assignment to prevent type issues
     const newValue = Boolean(value);
     console.log("Toggle comparison mode:", newValue);
     
     setComparisonMode(newValue);
     
-    // Show toast notification for better UX
     if (newValue) {
       if (secondaryPolyline && secondaryCoordinates.length > 0) {
         toast.success("Comparison mode enabled with " + secondaryCoordinates.length + " points");

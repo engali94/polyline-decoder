@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Trash2, Copy, Sparkles } from 'lucide-react';
 import { 
@@ -103,7 +102,7 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
             </button>
           )}
           <button 
-            onClick={() => setSecondaryPolyline('_p~iF~ps|U_ulLnnqC_mqNvxq`@')} 
+            onClick={() => setSecondaryPolyline('}~kvHmzrr@ba\\hnc@jiu@r{Zqx~@hjp@pwEhnc@zhu@zflAbxn@fhjBvqHroaAgcnAp}gAeahAtqGkngAinc@_h|@r{Zad\\y|_D}_y@swg@ysg@}llBpoZqa{@xrw@~eBaaX}{uAero@uqGadY}nr@`dYs_NquNgbjAf{l@|yh@bfc@}nr@z}q@i|i@zgz@r{ZhjFr}gApob@ff}@laIsen@dgYhdPvbIren@')}
             className="p-1.5 text-xs flex items-center space-x-1 bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50 rounded-md transition-colors"
           >
             <Sparkles className="h-3 w-3 mr-1" />

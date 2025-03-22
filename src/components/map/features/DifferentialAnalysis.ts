@@ -26,8 +26,6 @@ export const addDivergencePoints = (
 
   const divergencePoints: GeoJSON.Feature[] = [];
   
-  // Find points that diverge significantly between the two paths
-  // Use dynamic threshold based on the average distance between coordinates
   const pointsToCheck = Math.min(coordinates.length, secondaryCoordinates.length);
   const samplingRate = Math.max(1, Math.floor(pointsToCheck / 30));
 
@@ -49,13 +47,11 @@ export const addDivergencePoints = (
     comparisonPoints++;
   }
   
-  // Base threshold on average distance, with a minimum to catch small divergences
   const avgDistanceSquared = totalDistanceSquared / Math.max(1, comparisonPoints);
   const threshold = Math.max(0.00001, avgDistanceSquared * 0.25);
   
   console.log(`Divergence threshold: ${threshold} based on avg distance: ${avgDistanceSquared}`);
   
-  // Now detect divergence using the threshold
   for (let i = 0; i < pointsToCheck; i += samplingRate) {
     const primary = coordinates[i];
     const secondary = secondaryCoordinates[i];
@@ -64,15 +60,12 @@ export const addDivergencePoints = (
     const dy = primary[1] - secondary[1];
     const distSquared = dx * dx + dy * dy;
     
-    // Add points where the divergence is significant
     if (distSquared > threshold) {
-      // Calculate midpoint between the two paths for better visualization
       const midPoint: [number, number] = [
         (primary[0] + secondary[0]) / 2,
         (primary[1] + secondary[1]) / 2
       ];
       
-      // Store both points and the distance for rendering
       divergencePoints.push({
         type: 'Feature',
         properties: {
@@ -92,7 +85,6 @@ export const addDivergencePoints = (
   
   if (divergencePoints.length > 0) {
     try {
-      // Add new source and layer for divergence points
       map.addSource('divergence-source', {
         type: 'geojson',
         data: {
@@ -150,15 +142,12 @@ export const addIntersectionPoints = (
     console.error("Error removing existing intersection layers:", e);
   }
 
-  // Find actual intersections between the paths by comparing segments
   const intersectionPoints: GeoJSON.Feature[] = [];
   
-  // Helper function to check if line segments intersect
   const doSegmentsIntersect = (
     a1: [number, number], a2: [number, number], 
     b1: [number, number], b2: [number, number]
   ): [number, number] | null => {
-    // Line segment intersection algorithm
     const dxa = a2[0] - a1[0];
     const dya = a2[1] - a1[1];
     const dxb = b2[0] - b1[0];
@@ -171,7 +160,6 @@ export const addIntersectionPoints = (
     const u = ((b1[0] - a1[0]) * dya - (b1[1] - a1[1]) * dxa) / det;
     
     if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
-      // Calculate intersection point
       return [
         a1[0] + t * dxa,
         a1[1] + t * dya
@@ -181,8 +169,6 @@ export const addIntersectionPoints = (
     return null;
   };
   
-  // Check path segments against each other for intersections
-  // Limit the number of checks to avoid performance issues
   const maxChecks = 5000;
   const primarySteps = Math.max(1, Math.floor(coordinates.length / 50));
   const secondarySteps = Math.max(1, Math.floor(secondaryCoordinates.length / 50));
@@ -224,7 +210,6 @@ export const addIntersectionPoints = (
   
   if (intersectionPoints.length > 0) {
     try {
-      // Add new source and layer for intersection points
       map.addSource('intersection-source', {
         type: 'geojson',
         data: {
@@ -267,10 +252,8 @@ export const addDifferentialAnalysis = (
     showIntersections
   });
 
-  // Clean up existing layers first
   cleanupDiffLayers(map);
 
-  // Add a connecting lines layer to better visualize the differences
   try {
     if (coordinates.length > 0 && secondaryCoordinates.length > 0) {
       const connectingFeatures: GeoJSON.Feature[] = [];
@@ -289,7 +272,6 @@ export const addDifferentialAnalysis = (
       }
       
       if (connectingFeatures.length > 0) {
-        // Add connecting lines source and layer
         map.addSource('connecting-source', {
           type: 'geojson',
           data: {
@@ -338,7 +320,6 @@ export const cleanupDiffLayers = (map: maplibregl.Map): void => {
       'connecting-source'
     ];
     
-    // Remove layers first
     for (const layer of layersToRemove) {
       if (map.getLayer(layer)) {
         map.removeLayer(layer);
@@ -346,7 +327,6 @@ export const cleanupDiffLayers = (map: maplibregl.Map): void => {
       }
     }
     
-    // Then remove sources
     for (const source of sourcesToRemove) {
       if (map.getSource(source)) {
         map.removeSource(source);

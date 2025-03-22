@@ -1,10 +1,21 @@
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import Header from '../components/Header';
 import { MapPin, Ruler, Code, Maximize, Download, BarChart3 } from 'lucide-react';
 
 const About = () => {
   return (
     <div className="flex flex-col h-screen p-2 md:p-3 max-w-full mx-auto">
+      <Helmet>
+        <title>About Online Polyline Encoder, Decoder & Visualizer | Interactive Map Tool</title>
+        <meta name="description" content="Learn about polyline encoding, decoding and visualization. Our online tool converts between coordinates and Google polylines with interactive map visualization." />
+        <meta name="keywords" content="about polyline, polyline algorithm, google polyline format, online polyline map visualization, encode decode polyline, polyline tools" />
+        <meta property="og:title" content="About Online Polyline Encoder, Decoder & Visualizer Tool" />
+        <meta property="og:description" content="Learn how polyline encoding works and how our online tool helps visualize routes on interactive maps." />
+        <meta name="twitter:title" content="About Online Polyline Encoder, Decoder & Visualizer" />
+        <meta name="twitter:description" content="Understand polyline encoding, decoding and visualization for maps and routes with our online tool." />
+      </Helmet>
+      
       <Header />
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">

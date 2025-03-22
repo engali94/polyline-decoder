@@ -44,12 +44,10 @@ const MapContainer: React.FC<MapProps> = ({
   const [localComparisonType, setLocalComparisonType] = useState<'overlay' | 'sideBySide' | 'diff'>(comparisonType);
   const { styleOptions, setStyleOptions, currentStyleId, setCurrentStyleId } = useMapStyles();
 
-  // Update local comparison type when prop changes
   useEffect(() => {
     setLocalComparisonType(comparisonType);
   }, [comparisonType]);
 
-  // Toggle split view based on comparison type
   useEffect(() => {
     if (comparisonMode && localComparisonType === 'sideBySide') {
       console.log("Activating split view for side-by-side comparison");
@@ -60,7 +58,6 @@ const MapContainer: React.FC<MapProps> = ({
     }
   }, [comparisonMode, localComparisonType]);
 
-  // Log props for debugging
   useEffect(() => {
     console.log("MapContainer props:", {
       coordinatesLength: coordinates.length,
@@ -91,7 +88,6 @@ const MapContainer: React.FC<MapProps> = ({
     secondaryLineDash
   ]);
 
-  // Style handling for both maps
   useEffect(() => {
     if (map.current && styleOptions.length > 0) {
       const currentStyle = styleOptions.find(style => style.id === currentStyleId);
@@ -116,10 +112,8 @@ const MapContainer: React.FC<MapProps> = ({
     }
   }, [currentStyleId, styleOptions]);
 
-  // Force redraw on comparison changes
   useEffect(() => {
     const redrawTimeout = setTimeout(() => {
-      // Force redraw by triggering a resize event
       if (map.current) {
         console.log("Forcing map redraw");
         map.current.resize();
@@ -128,7 +122,7 @@ const MapContainer: React.FC<MapProps> = ({
         console.log("Forcing second map redraw");
         secondMap.current.resize();
       }
-    }, 200); // Slightly longer timeout for better rendering
+    }, 200);
     
     return () => clearTimeout(redrawTimeout);
   }, [

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Trash2, Copy, Sparkles, ArrowDownUp, Upload, Download } from 'lucide-react';
 import { 
@@ -157,7 +156,7 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
           <button 
             onClick={() => {
               if (mode === 'decode') {
-                onChange('_p~iF~ps|U_ulLnnqC_mqNvxq`@');
+                onChange('}~kvHmzrr@ba\\hnc@jiu@r{Zqx~@hjp@pwEhnc@zhu@zflAbxn@fhjBvqHroaAgcnAp}gAeahAtqGkngAinc@_h|@r{Zad\\y|_D}_y@swg@ysg@}llBpoZqa{@xrw@~eBaaX}{uAero@uqGadY}nr@`dYs_NquNgbjAf{l@|yh@bfc@}nr@z}q@i|i@zgz@r{ZhjFr}gApob@ff}@laIsen@dgYhdPvbIren@');
               } else {
                 setCoordinatesText('-122.4194,37.7749\n-122.4099,37.7912\n-122.4330,37.7866');
               }
