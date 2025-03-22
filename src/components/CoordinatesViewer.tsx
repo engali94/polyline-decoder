@@ -17,14 +17,17 @@ const CoordinatesViewer: React.FC<CoordinatesViewerProps> = ({
   primaryCoordinates,
   secondaryCoordinates = [],
   primaryLabel = 'Primary Path',
-  secondaryLabel = 'Secondary Path'
+  secondaryLabel = 'Secondary Path',
 }) => {
   const [exportFormat, setExportFormat] = useState<'swift' | 'android' | 'js' | 'rust'>('swift');
 
   // Format coordinates according to programming language
-  const formatCoordinates = (coords: [number, number][], format: 'swift' | 'android' | 'js' | 'rust') => {
+  const formatCoordinates = (
+    coords: [number, number][],
+    format: 'swift' | 'android' | 'js' | 'rust'
+  ) => {
     if (coords.length === 0) return 'No coordinates available';
-    
+
     switch (format) {
       case 'swift':
         return `let coordinates: [CLLocationCoordinate2D] = [
@@ -71,39 +74,46 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
   // Get file extension based on format
   const getFileExtension = () => {
     switch (exportFormat) {
-      case 'swift': return 'swift';
-      case 'android': return 'java';
-      case 'js': return 'js';
-      case 'rust': return 'rs';
-      default: return 'txt';
+      case 'swift':
+        return 'swift';
+      case 'android':
+        return 'java';
+      case 'js':
+        return 'js';
+      case 'rust':
+        return 'rs';
+      default:
+        return 'txt';
     }
   };
 
   return (
     <div className="panel animate-fade-in">
-      <div className="flex items-center space-x-1 mb-2">
-        <span className="bg-primary/10 px-2 py-0.5 rounded-full text-xs font-medium text-primary flex items-center">
-          <Brackets className="h-3 w-3 mr-1" /> Coordinates
+      <div className="mb-2 flex items-center space-x-1">
+        <span className="flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+          <Brackets className="mr-1 h-3 w-3" /> Coordinates
         </span>
       </div>
-      
+
       <Tabs defaultValue="code" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 mb-4">
+        <TabsList className="mb-4 grid w-full grid-cols-2">
           <TabsTrigger value="code" className="text-xs">
-            <Code className="h-3 w-3 mr-1" /> Code Export
+            <Code className="mr-1 h-3 w-3" /> Code Export
           </TabsTrigger>
           <TabsTrigger value="table" className="text-xs">
-            <Table className="h-3 w-3 mr-1" /> Table View
+            <Table className="mr-1 h-3 w-3" /> Table View
           </TabsTrigger>
         </TabsList>
 
         {/* Code Export Tab */}
         <TabsContent value="code">
           <Tabs defaultValue="primary" className="w-full">
-            <TabsList className="grid grid-cols-2 mb-2">
-              <TabsTrigger value="primary" className="text-xs">{primaryLabel}</TabsTrigger>
-              <TabsTrigger 
-                value="secondary" 
+            <TabsList className="mb-2 grid grid-cols-2">
+              <TabsTrigger value="primary" className="text-xs">
+                {primaryLabel}
+              </TabsTrigger>
+              <TabsTrigger
+                value="secondary"
                 disabled={secondaryCoordinates.length === 0}
                 className="text-xs"
               >
@@ -116,19 +126,21 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
                 <div className="text-xs text-muted-foreground">
                   {primaryCoordinates.length} points
                 </div>
-                
+
                 <div className="flex gap-2">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => copyToClipboard(
-                            formatCoordinates(primaryCoordinates, exportFormat),
-                            primaryLabel
-                          )}
+                          onClick={() =>
+                            copyToClipboard(
+                              formatCoordinates(primaryCoordinates, exportFormat),
+                              primaryLabel
+                            )
+                          }
                         >
                           <Copy className="h-3.5 w-3.5" />
                         </Button>
@@ -140,15 +152,17 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => downloadAsFile(
-                            formatCoordinates(primaryCoordinates, exportFormat),
-                            'primary_coordinates',
-                            getFileExtension()
-                          )}
+                          onClick={() =>
+                            downloadAsFile(
+                              formatCoordinates(primaryCoordinates, exportFormat),
+                              'primary_coordinates',
+                              getFileExtension()
+                            )
+                          }
                         >
                           <Download className="h-3.5 w-3.5" />
                         </Button>
@@ -159,16 +173,24 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
                 </div>
               </div>
 
-              <div className="rounded-lg border bg-secondary/20 overflow-hidden">
-                <Tabs defaultValue="swift" onValueChange={(v) => setExportFormat(v as any)}>
-                  <TabsList className="w-full grid grid-cols-4 bg-secondary/30">
-                    <TabsTrigger value="swift" className="text-xs">Swift</TabsTrigger>
-                    <TabsTrigger value="android" className="text-xs">Android</TabsTrigger>
-                    <TabsTrigger value="js" className="text-xs">JavaScript</TabsTrigger>
-                    <TabsTrigger value="rust" className="text-xs">Rust</TabsTrigger>
+              <div className="overflow-hidden rounded-lg border bg-secondary/20">
+                <Tabs defaultValue="swift" onValueChange={v => setExportFormat(v as any)}>
+                  <TabsList className="grid w-full grid-cols-4 bg-secondary/30">
+                    <TabsTrigger value="swift" className="text-xs">
+                      Swift
+                    </TabsTrigger>
+                    <TabsTrigger value="android" className="text-xs">
+                      Android
+                    </TabsTrigger>
+                    <TabsTrigger value="js" className="text-xs">
+                      JavaScript
+                    </TabsTrigger>
+                    <TabsTrigger value="rust" className="text-xs">
+                      Rust
+                    </TabsTrigger>
                   </TabsList>
                   <ScrollArea className="h-48 p-2">
-                    <pre className="text-xs font-mono p-2 rounded bg-muted/50">
+                    <pre className="rounded bg-muted/50 p-2 font-mono text-xs">
                       {formatCoordinates(primaryCoordinates, exportFormat)}
                     </pre>
                   </ScrollArea>
@@ -181,19 +203,21 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
                 <div className="text-xs text-muted-foreground">
                   {secondaryCoordinates.length} points
                 </div>
-                
+
                 <div className="flex gap-2">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => copyToClipboard(
-                            formatCoordinates(secondaryCoordinates, exportFormat),
-                            secondaryLabel
-                          )}
+                          onClick={() =>
+                            copyToClipboard(
+                              formatCoordinates(secondaryCoordinates, exportFormat),
+                              secondaryLabel
+                            )
+                          }
                           disabled={secondaryCoordinates.length === 0}
                         >
                           <Copy className="h-3.5 w-3.5" />
@@ -206,15 +230,17 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => downloadAsFile(
-                            formatCoordinates(secondaryCoordinates, exportFormat),
-                            'secondary_coordinates',
-                            getFileExtension()
-                          )}
+                          onClick={() =>
+                            downloadAsFile(
+                              formatCoordinates(secondaryCoordinates, exportFormat),
+                              'secondary_coordinates',
+                              getFileExtension()
+                            )
+                          }
                           disabled={secondaryCoordinates.length === 0}
                         >
                           <Download className="h-3.5 w-3.5" />
@@ -226,16 +252,24 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
                 </div>
               </div>
 
-              <div className="rounded-lg border bg-secondary/20 overflow-hidden">
-                <Tabs defaultValue="swift" onValueChange={(v) => setExportFormat(v as any)}>
-                  <TabsList className="w-full grid grid-cols-4 bg-secondary/30">
-                    <TabsTrigger value="swift" className="text-xs">Swift</TabsTrigger>
-                    <TabsTrigger value="android" className="text-xs">Android</TabsTrigger>
-                    <TabsTrigger value="js" className="text-xs">JavaScript</TabsTrigger>
-                    <TabsTrigger value="rust" className="text-xs">Rust</TabsTrigger>
+              <div className="overflow-hidden rounded-lg border bg-secondary/20">
+                <Tabs defaultValue="swift" onValueChange={v => setExportFormat(v as any)}>
+                  <TabsList className="grid w-full grid-cols-4 bg-secondary/30">
+                    <TabsTrigger value="swift" className="text-xs">
+                      Swift
+                    </TabsTrigger>
+                    <TabsTrigger value="android" className="text-xs">
+                      Android
+                    </TabsTrigger>
+                    <TabsTrigger value="js" className="text-xs">
+                      JavaScript
+                    </TabsTrigger>
+                    <TabsTrigger value="rust" className="text-xs">
+                      Rust
+                    </TabsTrigger>
                   </TabsList>
                   <ScrollArea className="h-48 p-2">
-                    <pre className="text-xs font-mono p-2 rounded bg-muted/50">
+                    <pre className="rounded bg-muted/50 p-2 font-mono text-xs">
                       {formatCoordinates(secondaryCoordinates, exportFormat)}
                     </pre>
                   </ScrollArea>
@@ -248,10 +282,12 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
         {/* Table View Tab */}
         <TabsContent value="table">
           <Tabs defaultValue="primary" className="w-full">
-            <TabsList className="grid grid-cols-2 mb-2">
-              <TabsTrigger value="primary" className="text-xs">{primaryLabel}</TabsTrigger>
-              <TabsTrigger 
-                value="secondary" 
+            <TabsList className="mb-2 grid grid-cols-2">
+              <TabsTrigger value="primary" className="text-xs">
+                {primaryLabel}
+              </TabsTrigger>
+              <TabsTrigger
+                value="secondary"
                 disabled={secondaryCoordinates.length === 0}
                 className="text-xs"
               >
@@ -260,8 +296,8 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
             </TabsList>
 
             <TabsContent value="primary">
-              <div className="rounded-lg border bg-secondary/20 overflow-hidden">
-                <div className="grid grid-cols-3 text-xs font-medium bg-secondary/30 p-2">
+              <div className="overflow-hidden rounded-lg border bg-secondary/20">
+                <div className="grid grid-cols-3 bg-secondary/30 p-2 text-xs font-medium">
                   <div>Index</div>
                   <div>Latitude</div>
                   <div>Longitude</div>
@@ -269,9 +305,9 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
                 <ScrollArea className="h-64">
                   <div className="p-1">
                     {primaryCoordinates.map(([lng, lat], index) => (
-                      <div 
-                        key={index} 
-                        className="grid grid-cols-3 text-xs p-1 hover:bg-secondary/30 rounded"
+                      <div
+                        key={index}
+                        className="grid grid-cols-3 rounded p-1 text-xs hover:bg-secondary/30"
                       >
                         <div>{index}</div>
                         <div>{lat.toFixed(6)}</div>
@@ -284,8 +320,8 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
             </TabsContent>
 
             <TabsContent value="secondary">
-              <div className="rounded-lg border bg-secondary/20 overflow-hidden">
-                <div className="grid grid-cols-3 text-xs font-medium bg-secondary/30 p-2">
+              <div className="overflow-hidden rounded-lg border bg-secondary/20">
+                <div className="grid grid-cols-3 bg-secondary/30 p-2 text-xs font-medium">
                   <div>Index</div>
                   <div>Latitude</div>
                   <div>Longitude</div>
@@ -293,9 +329,9 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
                 <ScrollArea className="h-64">
                   <div className="p-1">
                     {secondaryCoordinates.map(([lng, lat], index) => (
-                      <div 
-                        key={index} 
-                        className="grid grid-cols-3 text-xs p-1 hover:bg-secondary/30 rounded"
+                      <div
+                        key={index}
+                        className="grid grid-cols-3 rounded p-1 text-xs hover:bg-secondary/30"
                       >
                         <div>{index}</div>
                         <div>{lat.toFixed(6)}</div>
@@ -313,4 +349,4 @@ ${coords.map(([lng, lat]) => `coordinates.add(new LatLng(${lat}, ${lng}));`).joi
   );
 };
 
-export default CoordinatesViewer; 
+export default CoordinatesViewer;

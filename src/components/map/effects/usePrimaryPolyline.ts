@@ -19,9 +19,8 @@ export const usePrimaryPolyline = ({
   validCoordinates,
   color = '#3b82f6',
   lineWidth = 3,
-  lineDash = []
+  lineDash = [],
 }: UsePrimaryPolylineProps) => {
-  
   useEffect(() => {
     if (!map.current || isLoading || !validCoordinates) return;
 

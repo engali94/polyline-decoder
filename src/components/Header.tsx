@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   return (
-    <header className="w-full glass rounded-xl p-4 flex items-center justify-between mb-4 animate-slide-down">
+    <header className="glass mb-4 flex w-full animate-slide-down items-center justify-between rounded-xl p-4">
       <div className="flex items-center space-x-2">
-        <div className="bg-primary/10 p-2 rounded-lg">
+        <div className="rounded-lg bg-primary/10 p-2">
           <Map className="h-6 w-6 text-primary" />
         </div>
         <div>
@@ -17,20 +17,29 @@ const Header: React.FC = () => {
         </div>
       </div>
       <div className="flex items-center space-x-3">
-        <nav className="hidden md:flex items-center space-x-2">
-          <Link to="/" className="px-3 py-1.5 text-sm hover:bg-secondary rounded-md transition-colors">
+        <nav className="hidden items-center space-x-2 md:flex">
+          <Link
+            to="/"
+            className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-secondary"
+          >
             Home
           </Link>
-          <Link to="/about" className="px-3 py-1.5 text-sm hover:bg-secondary rounded-md transition-colors flex items-center">
-            <Info className="h-3.5 w-3.5 mr-1" />
+          <Link
+            to="/about"
+            className="flex items-center rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-secondary"
+          >
+            <Info className="mr-1 h-3.5 w-3.5" />
             About
           </Link>
-          <Link to="/docs" className="px-3 py-1.5 text-sm hover:bg-secondary rounded-md transition-colors flex items-center">
-            <BookOpen className="h-3.5 w-3.5 mr-1" />
+          <Link
+            to="/docs"
+            className="flex items-center rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-secondary"
+          >
+            <BookOpen className="mr-1 h-3.5 w-3.5" />
             Docs
           </Link>
         </nav>
-        <span className="hidden md:inline-block text-xs text-muted-foreground">
+        <span className="hidden text-xs text-muted-foreground md:inline-block">
           Free online tool for Google polyline format
         </span>
         <a
@@ -38,7 +47,7 @@ const Header: React.FC = () => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="View source code on GitHub"
-          className="p-2 rounded-full hover:bg-secondary transition-colors duration-200"
+          className="rounded-full p-2 transition-colors duration-200 hover:bg-secondary"
         >
           <Github className="h-5 w-5" />
         </a>

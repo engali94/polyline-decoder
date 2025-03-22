@@ -10,13 +10,13 @@ export const addPrimaryPolyline = (
 ): void => {
   if (isLoading || !coordinates.length) return;
 
-  console.log("📍 Adding primary polyline with", coordinates.length, "points");
-  console.log("📍 First few coordinates:", coordinates.slice(0, 3));
-  console.log("📍 Last few coordinates:", coordinates.slice(-3));
-  console.log("🎨 Using color:", color, "width:", lineWidth, "dash:", lineDash);
+  console.log('📍 Adding primary polyline with', coordinates.length, 'points');
+  console.log('📍 First few coordinates:', coordinates.slice(0, 3));
+  console.log('📍 Last few coordinates:', coordinates.slice(-3));
+  console.log('🎨 Using color:', color, 'width:', lineWidth, 'dash:', lineDash);
 
   if (!map.isStyleLoaded()) {
-    console.log("🔄 Map style not loaded yet, waiting...");
+    console.log('🔄 Map style not loaded yet, waiting...');
     map.once('style.load', () => {
       addPrimaryPolyline(map, coordinates, isLoading, color, lineWidth, lineDash);
     });
@@ -34,7 +34,7 @@ export const addPrimaryPolyline = (
       map.removeSource(sourceId);
     }
   } catch (error) {
-    console.error("❌ Error removing existing layers:", error);
+    console.error('❌ Error removing existing layers:', error);
   }
 
   try {
@@ -45,9 +45,9 @@ export const addPrimaryPolyline = (
         properties: {},
         geometry: {
           type: 'LineString',
-          coordinates: coordinates
-        }
-      }
+          coordinates: coordinates,
+        },
+      },
     });
 
     map.addLayer({
@@ -56,90 +56,93 @@ export const addPrimaryPolyline = (
       source: sourceId,
       layout: {
         'line-join': 'round',
-        'line-cap': 'round'
+        'line-cap': 'round',
       },
       paint: {
         'line-color': color,
         'line-width': lineWidth,
-        ...(lineDash.length > 0 ? { 'line-dasharray': lineDash } : {})
-      }
+        ...(lineDash.length > 0 ? { 'line-dasharray': lineDash } : {}),
+      },
     });
 
     if (coordinates.length > 0) {
-      const isSaudiArabia = coordinates.some(([lng, lat]) => 
-        lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50
+      const isSaudiArabia = coordinates.some(
+        ([lng, lat]) => lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50
       );
-      
+
       if (isSaudiArabia) {
-        console.log("🇸🇦 Saudi Arabia coordinates detected - using optimized view");
-        
+        console.log('🇸🇦 Saudi Arabia coordinates detected - using optimized view');
+
         map.jumpTo({
           center: coordinates[0],
-          zoom: 14  // Start with a closer zoom
+          zoom: 14, // Start with a closer zoom
         });
-        
+
         const bounds = new maplibregl.LngLatBounds();
         for (const coord of coordinates) {
           bounds.extend(coord as [number, number]);
         }
-        
+
         map.fitBounds(bounds, {
           padding: 80,
           maxZoom: 15,
-          duration: 500
+          duration: 500,
         });
       } else {
         const bounds = new maplibregl.LngLatBounds();
         let validCoords = false;
-        
+
         for (const coord of coordinates) {
-          if (Array.isArray(coord) && coord.length === 2 && 
-              !isNaN(coord[0]) && !isNaN(coord[1]) &&
-              Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90) {
+          if (
+            Array.isArray(coord) &&
+            coord.length === 2 &&
+            !isNaN(coord[0]) &&
+            !isNaN(coord[1]) &&
+            Math.abs(coord[0]) <= 180 &&
+            Math.abs(coord[1]) <= 90
+          ) {
             bounds.extend(coord as [number, number]);
             validCoords = true;
           }
         }
-        
+
         if (validCoords) {
-          console.log("🗺️ Fitting to bounds:", bounds.toString());
-          
+          console.log('🗺️ Fitting to bounds:', bounds.toString());
+
           const center = [
             (bounds.getEast() + bounds.getWest()) / 2,
-            (bounds.getNorth() + bounds.getSouth()) / 2
+            (bounds.getNorth() + bounds.getSouth()) / 2,
           ];
           map.jumpTo({
             center: center as [number, number],
-            zoom: 7
+            zoom: 7,
           });
-          
+
           map.fitBounds(bounds, {
             padding: 50,
             maxZoom: 15,
-            duration: 500
+            duration: 500,
           });
         } else if (coordinates.length === 1) {
-          console.log("📍 Centering on single coordinate:", coordinates[0]);
+          console.log('📍 Centering on single coordinate:', coordinates[0]);
           map.jumpTo({
             center: coordinates[0],
-            zoom: 14
+            zoom: 14,
           });
         }
       }
     }
-    
+
     if (coordinates.length >= 2) {
-      new maplibregl.Marker({color: '#10b981'})
-        .setLngLat(coordinates[0])
-        .addTo(map);
-      
-      new maplibregl.Marker({color: '#ef4444'})
+      new maplibregl.Marker({ color: '#10b981' }).setLngLat(coordinates[0]).addTo(map);
+
+      new maplibregl.Marker({ color: '#ef4444' })
         .setLngLat(coordinates[coordinates.length - 1])
         .addTo(map);
-      
-      console.log("🚩 Added start/end markers to map");
+
+      console.log('🚩 Added start/end markers to map');
     }
   } catch (error) {
-    console.error("❌ Error adding polyline to map:", error);
+    console.error('❌ Error adding polyline to map:', error);
   }
 };

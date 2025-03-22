@@ -22,9 +22,9 @@ interface MapProps {
   secondaryLineDash?: number[];
 }
 
-const MapContainer: React.FC<MapProps> = ({ 
-  coordinates, 
-  secondaryCoordinates = [], 
+const MapContainer: React.FC<MapProps> = ({
+  coordinates,
+  secondaryCoordinates = [],
   isLoading = false,
   comparisonMode = false,
   comparisonType = 'overlay',
@@ -36,12 +36,14 @@ const MapContainer: React.FC<MapProps> = ({
   primaryLineWidth = 3,
   secondaryLineWidth = 3,
   primaryLineDash = [],
-  secondaryLineDash = []
+  secondaryLineDash = [],
 }) => {
   const map = useRef<maplibregl.Map | null>(null);
   const secondMap = useRef<maplibregl.Map | null>(null);
   const [splitViewActive, setSplitViewActive] = useState(false);
-  const [localComparisonType, setLocalComparisonType] = useState<'overlay' | 'sideBySide' | 'diff'>(comparisonType);
+  const [localComparisonType, setLocalComparisonType] = useState<'overlay' | 'sideBySide' | 'diff'>(
+    comparisonType
+  );
   const { styleOptions, setStyleOptions, currentStyleId, setCurrentStyleId } = useMapStyles();
 
   useEffect(() => {
@@ -50,16 +52,16 @@ const MapContainer: React.FC<MapProps> = ({
 
   useEffect(() => {
     if (comparisonMode && localComparisonType === 'sideBySide') {
-      console.log("Activating split view for side-by-side comparison");
+      console.log('Activating split view for side-by-side comparison');
       setSplitViewActive(true);
     } else {
-      console.log("Deactivating split view");
+      console.log('Deactivating split view');
       setSplitViewActive(false);
     }
   }, [comparisonMode, localComparisonType]);
 
   useEffect(() => {
-    console.log("MapContainer props:", {
+    console.log('MapContainer props:', {
       coordinatesLength: coordinates.length,
       secondaryCoordinatesLength: secondaryCoordinates.length,
       comparisonMode,
@@ -71,21 +73,21 @@ const MapContainer: React.FC<MapProps> = ({
       primaryLineWidth,
       secondaryLineWidth,
       primaryLineDash,
-      secondaryLineDash
+      secondaryLineDash,
     });
   }, [
-    coordinates, 
-    secondaryCoordinates, 
-    comparisonMode, 
-    localComparisonType, 
-    splitViewActive, 
+    coordinates,
+    secondaryCoordinates,
+    comparisonMode,
+    localComparisonType,
+    splitViewActive,
     overlayOpacity,
     primaryColor,
     secondaryColor,
     primaryLineWidth,
     secondaryLineWidth,
     primaryLineDash,
-    secondaryLineDash
+    secondaryLineDash,
   ]);
 
   useEffect(() => {
@@ -115,28 +117,28 @@ const MapContainer: React.FC<MapProps> = ({
   useEffect(() => {
     const redrawTimeout = setTimeout(() => {
       if (map.current) {
-        console.log("Forcing map redraw");
+        console.log('Forcing map redraw');
         map.current.resize();
       }
       if (secondMap.current) {
-        console.log("Forcing second map redraw");
+        console.log('Forcing second map redraw');
         secondMap.current.resize();
       }
     }, 200);
-    
+
     return () => clearTimeout(redrawTimeout);
   }, [
-    comparisonMode, 
-    comparisonType, 
-    secondaryCoordinates, 
-    overlayOpacity, 
+    comparisonMode,
+    comparisonType,
+    secondaryCoordinates,
+    overlayOpacity,
     splitViewActive,
     primaryColor,
     secondaryColor,
     primaryLineWidth,
     secondaryLineWidth,
     primaryLineDash,
-    secondaryLineDash
+    secondaryLineDash,
   ]);
 
   return (
@@ -162,7 +164,7 @@ const MapContainer: React.FC<MapProps> = ({
         primaryLineDash={primaryLineDash}
         secondaryLineDash={secondaryLineDash}
       />
-      
+
       <MapControls
         comparisonMode={comparisonMode}
         comparisonType={localComparisonType}
@@ -170,7 +172,7 @@ const MapContainer: React.FC<MapProps> = ({
         setSplitViewActive={setSplitViewActive}
         setComparisonType={setLocalComparisonType}
       />
-      
+
       <StyleSelector
         styleOptions={styleOptions}
         currentStyleId={currentStyleId}

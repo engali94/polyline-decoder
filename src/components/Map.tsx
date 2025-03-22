@@ -33,7 +33,7 @@ const Map: React.FC<MapProps> = ({
   primaryLineWidth = 3,
   secondaryLineWidth = 3,
   primaryLineDash = [],
-  secondaryLineDash = []
+  secondaryLineDash = [],
 }) => {
   console.log('Map component props:', {
     coordinatesCount: coordinates.length,
@@ -44,7 +44,7 @@ const Map: React.FC<MapProps> = ({
     primaryColor,
     secondaryColor,
     primaryLineWidth,
-    secondaryLineWidth
+    secondaryLineWidth,
   });
 
   return (

@@ -1,10 +1,9 @@
-
 export { addPrimaryPolyline } from './PrimaryPolyline';
 export { addSecondaryPolyline } from './SecondaryPolyline';
-export { 
+export {
   addDifferentialAnalysis,
   addDivergencePoints,
   addIntersectionPoints,
-  cleanupDiffLayers 
+  cleanupDiffLayers,
 } from './DifferentialAnalysis';
 export { cleanupMapLayers } from './MapCleanup';

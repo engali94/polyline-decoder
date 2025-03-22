@@ -43,25 +43,27 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
   showIntersections,
   setShowIntersections,
   precision = 5,
-  setPrecision
+  setPrecision,
 }) => {
   const [alignmentThreshold, setAlignmentThreshold] = useState(20);
   const [activeTab, setActiveTab] = useState<ComparisonViewType>(comparisonType);
 
   const primaryCoordinates = primaryPolyline ? decodePolyline(primaryPolyline, precision) : [];
-  const secondaryCoordinates = secondaryPolyline ? decodePolyline(secondaryPolyline, precision) : [];
+  const secondaryCoordinates = secondaryPolyline
+    ? decodePolyline(secondaryPolyline, precision)
+    : [];
 
   const primaryDistance = calculateDistance(primaryCoordinates);
   const secondaryDistance = calculateDistance(secondaryCoordinates);
   const distanceDiff = Math.abs(primaryDistance - secondaryDistance);
   const pointsDiff = Math.abs(primaryCoordinates.length - secondaryCoordinates.length);
-  
+
   const chartData = generateChartData(primaryCoordinates, secondaryCoordinates);
-  
+
   useEffect(() => {
     if (secondaryPolyline && !comparisonMode) {
       setComparisonMode(true);
-      toast.success("Comparison mode enabled");
+      toast.success('Comparison mode enabled');
     }
   }, [secondaryPolyline, comparisonMode, setComparisonMode]);
 
@@ -71,7 +73,7 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as ComparisonViewType);
-    
+
     if (value === 'overlay' || value === 'sideBySide' || value === 'diff') {
       setComparisonType(value as 'overlay' | 'sideBySide' | 'diff');
     }
@@ -79,13 +81,13 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
 
   return (
     <div className="panel animate-fade-in">
-      <ComparisonHeader 
-        comparisonMode={comparisonMode} 
-        handleComparisonToggle={setComparisonMode} 
+      <ComparisonHeader
+        comparisonMode={comparisonMode}
+        handleComparisonToggle={setComparisonMode}
       />
 
       {/* Always show the secondary polyline input */}
-      <SecondaryPolylineInput 
+      <SecondaryPolylineInput
         secondaryPolyline={secondaryPolyline}
         setSecondaryPolyline={setSecondaryPolyline}
         secondaryCoordinates={secondaryCoordinates}
@@ -94,7 +96,7 @@ const PolylineComparison: React.FC<PolylineComparisonProps> = ({
       />
 
       {secondaryPolyline && (
-        <ComparisonTabs 
+        <ComparisonTabs
           activeTab={activeTab}
           handleTabChange={handleTabChange}
           overlayOpacity={overlayOpacity}

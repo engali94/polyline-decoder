@@ -10,16 +10,16 @@ export const useMapStyles = () => {
     const builtInStyles = Object.entries(mapStyles).map(([id, style]) => ({
       id,
       name: style.name,
-      url: style.url
+      url: style.url,
     }));
-    
+
     const customStyles = Object.entries(loadCustomStyles()).map(([id, style]) => ({
       id,
       name: style.name,
       url: style.url,
-      isCustom: true
+      isCustom: true,
     }));
-    
+
     setStyleOptions([...builtInStyles, ...customStyles]);
   }, []);
 
@@ -27,8 +27,7 @@ export const useMapStyles = () => {
     styleOptions,
     setStyleOptions,
     currentStyleId,
-    setCurrentStyleId
+    setCurrentStyleId,
   };
 };
 import { mapStyles } from '../../utils/mapStyles';
-

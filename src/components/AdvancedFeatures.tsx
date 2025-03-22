@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Sliders, 
-  PaintBucket, 
-  StretchHorizontal, 
-  Mountain, 
-  Clock, 
+import {
+  Sliders,
+  PaintBucket,
+  StretchHorizontal,
+  Mountain,
+  Clock,
   Percent,
-  Settings
+  Settings,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Slider } from './ui/slider';
@@ -61,7 +61,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
   setPrimaryLineDash = () => {},
   secondaryLineDash = [],
   setSecondaryLineDash = () => {},
-  hasElevationData = false
+  hasElevationData = false,
 }) => {
   const [selectedColorScheme, setSelectedColorScheme] = useState<string>('default');
   const [customPrimaryColor, setCustomPrimaryColor] = useState(primaryColor);
@@ -76,7 +76,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
     { name: 'monochrome', primaryColor: '#000000', secondaryColor: '#666666' },
     { name: 'earth', primaryColor: '#84cc16', secondaryColor: '#a16207' },
     { name: 'ocean', primaryColor: '#0ea5e9', secondaryColor: '#0f766e' },
-    { name: 'sunset', primaryColor: '#f97316', secondaryColor: '#7c3aed' }
+    { name: 'sunset', primaryColor: '#f97316', secondaryColor: '#7c3aed' },
   ];
 
   // Line style presets
@@ -85,20 +85,27 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
     { name: 'Dashed', primaryDash: [6, 2], secondaryDash: [6, 2] },
     { name: 'Dotted', primaryDash: [2, 2], secondaryDash: [2, 2] },
     { name: 'Dash-Dot', primaryDash: [6, 2, 2, 2], secondaryDash: [6, 2, 2, 2] },
-    { name: 'Contrast', primaryDash: [], secondaryDash: [6, 2] }
+    { name: 'Contrast', primaryDash: [], secondaryDash: [6, 2] },
   ];
 
   // Log initial state for debugging
   useEffect(() => {
-    console.log("Advanced Features Component State:", {
+    console.log('Advanced Features Component State:', {
       primaryLineDash,
       secondaryLineDash,
       primaryColor,
       secondaryColor,
       primaryLineWidth,
-      secondaryLineWidth
+      secondaryLineWidth,
     });
-  }, [primaryLineDash, secondaryLineDash, primaryColor, secondaryColor, primaryLineWidth, secondaryLineWidth]);
+  }, [
+    primaryLineDash,
+    secondaryLineDash,
+    primaryColor,
+    secondaryColor,
+    primaryLineWidth,
+    secondaryLineWidth,
+  ]);
 
   // Calculate similarity score between primary and secondary polylines
   const calculateSimilarityScore = () => {
@@ -110,29 +117,31 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
     // Calculate length similarity
     const primaryDistance = calculateDistance(primaryCoordinates);
     const secondaryDistance = calculateDistance(secondaryCoordinates);
-    const lengthSimilarity = Math.min(primaryDistance, secondaryDistance) / Math.max(primaryDistance, secondaryDistance);
+    const lengthSimilarity =
+      Math.min(primaryDistance, secondaryDistance) / Math.max(primaryDistance, secondaryDistance);
 
     // Calculate point count similarity
-    const pointCountSimilarity = Math.min(primaryCoordinates.length, secondaryCoordinates.length) / 
-                               Math.max(primaryCoordinates.length, secondaryCoordinates.length);
+    const pointCountSimilarity =
+      Math.min(primaryCoordinates.length, secondaryCoordinates.length) /
+      Math.max(primaryCoordinates.length, secondaryCoordinates.length);
 
     // Calculate area overlap (simplified)
     const primaryBounds = getBounds(primaryCoordinates);
     const secondaryBounds = getBounds(secondaryCoordinates);
-    
+
     const areaSimilarity = primaryBounds && secondaryBounds ? 0.8 : 0;
 
     // Calculate path shape similarity (simplified)
     const shapeSimilarity = 0.7; // Placeholder - would require more complex analysis
 
     // Weighted average of different factors
-    const score = (
-      lengthSimilarity * 0.3 + 
-      pointCountSimilarity * 0.1 + 
-      areaSimilarity * 0.3 + 
-      shapeSimilarity * 0.3
-    ) * 100;
-    
+    const score =
+      (lengthSimilarity * 0.3 +
+        pointCountSimilarity * 0.1 +
+        areaSimilarity * 0.3 +
+        shapeSimilarity * 0.3) *
+      100;
+
     setSimilarityScore(parseFloat(score.toFixed(1)));
     toast.success(`Similarity score calculated: ${parseFloat(score.toFixed(1))}%`);
   };
@@ -156,7 +165,11 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
   };
 
   // Apply a line style
-  const applyLineStyle = (style: { name: string, primaryDash: number[], secondaryDash: number[] }) => {
+  const applyLineStyle = (style: {
+    name: string;
+    primaryDash: number[];
+    secondaryDash: number[];
+  }) => {
     console.log(`Applying ${style.name} line style:`, style);
     setPrimaryLineDash(style.primaryDash);
     setSecondaryLineDash(style.secondaryDash);
@@ -173,18 +186,18 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
 
   return (
     <div className="panel animate-fade-in">
-      <div className="flex items-center space-x-1 mb-2">
-        <span className="bg-primary/10 px-2 py-0.5 rounded-full text-xs font-medium text-primary flex items-center">
-          <Settings className="h-3 w-3 mr-1" /> Advanced Features
+      <div className="mb-2 flex items-center space-x-1">
+        <span className="flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+          <Settings className="mr-1 h-3 w-3" /> Advanced Features
         </span>
       </div>
-      
+
       <Accordion type="single" collapsible className="w-full">
         {/* Precision Controls */}
         <AccordionItem value="precision">
-          <AccordionTrigger className="text-sm py-2">
+          <AccordionTrigger className="py-2 text-sm">
             <div className="flex items-center">
-              <Sliders className="h-4 w-4 mr-2" />
+              <Sliders className="mr-2 h-4 w-4" />
               <span>Coordinate Precision</span>
             </div>
           </AccordionTrigger>
@@ -199,10 +212,10 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                 min={4}
                 max={7}
                 step={1}
-                onValueChange={(value) => setPrecision(value[0])}
+                onValueChange={value => setPrecision(value[0])}
                 className="my-2"
               />
-              <div className="grid grid-cols-4 text-center text-xs text-muted-foreground pt-1">
+              <div className="grid grid-cols-4 pt-1 text-center text-xs text-muted-foreground">
                 <div>4 (±11m)</div>
                 <div>5 (±1.1m)</div>
                 <div>6 (±0.11m)</div>
@@ -214,9 +227,9 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
 
         {/* Color Customization */}
         <AccordionItem value="colors">
-          <AccordionTrigger className="text-sm py-2">
+          <AccordionTrigger className="py-2 text-sm">
             <div className="flex items-center">
-              <PaintBucket className="h-4 w-4 mr-2" />
+              <PaintBucket className="mr-2 h-4 w-4" />
               <span>Color Customization</span>
             </div>
           </AccordionTrigger>
@@ -224,29 +237,35 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
             <div className="space-y-3">
               <Tabs defaultValue="presets">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="presets" className="text-xs">Presets</TabsTrigger>
-                  <TabsTrigger value="custom" className="text-xs">Custom</TabsTrigger>
+                  <TabsTrigger value="presets" className="text-xs">
+                    Presets
+                  </TabsTrigger>
+                  <TabsTrigger value="custom" className="text-xs">
+                    Custom
+                  </TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="presets" className="mt-2 space-y-2">
                   <div className="max-h-40 overflow-y-auto">
                     <div className="space-y-2">
-                      {colorSchemes.map((scheme) => (
+                      {colorSchemes.map(scheme => (
                         <div
                           key={scheme.name}
-                          className={`flex items-center justify-between p-2 border rounded-md cursor-pointer hover:bg-secondary/30 ${
-                            selectedColorScheme === scheme.name ? 'border-primary' : 'border-transparent'
+                          className={`flex cursor-pointer items-center justify-between rounded-md border p-2 hover:bg-secondary/30 ${
+                            selectedColorScheme === scheme.name
+                              ? 'border-primary'
+                              : 'border-transparent'
                           }`}
                           onClick={() => applyColorScheme(scheme)}
                         >
                           <div className="text-xs capitalize">{scheme.name}</div>
                           <div className="flex space-x-2">
-                            <div 
-                              className="w-4 h-4 rounded-full border" 
+                            <div
+                              className="h-4 w-4 rounded-full border"
                               style={{ backgroundColor: scheme.primaryColor }}
                             />
-                            <div 
-                              className="w-4 h-4 rounded-full border" 
+                            <div
+                              className="h-4 w-4 rounded-full border"
                               style={{ backgroundColor: scheme.secondaryColor }}
                             />
                           </div>
@@ -255,45 +274,45 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                     </div>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="custom" className="mt-2 space-y-2">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs">Primary Path:</Label>
                       <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-4 h-4 rounded-full border" 
+                        <div
+                          className="h-4 w-4 rounded-full border"
                           style={{ backgroundColor: customPrimaryColor }}
                         />
-                        <Input 
+                        <Input
                           type="text"
                           value={customPrimaryColor}
-                          onChange={(e) => setCustomPrimaryColor(e.target.value)}
-                          className="w-24 h-7 text-xs"
+                          onChange={e => setCustomPrimaryColor(e.target.value)}
+                          className="h-7 w-24 text-xs"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <Label className="text-xs">Secondary Path:</Label>
                       <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-4 h-4 rounded-full border" 
+                        <div
+                          className="h-4 w-4 rounded-full border"
                           style={{ backgroundColor: customSecondaryColor }}
                         />
-                        <Input 
+                        <Input
                           type="text"
                           value={customSecondaryColor}
-                          onChange={(e) => setCustomSecondaryColor(e.target.value)}
-                          className="w-24 h-7 text-xs"
+                          onChange={e => setCustomSecondaryColor(e.target.value)}
+                          className="h-7 w-24 text-xs"
                         />
                       </div>
                     </div>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full text-xs mt-2"
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 w-full text-xs"
                       onClick={applyCustomColors}
                     >
                       Apply Custom Colors
@@ -307,9 +326,9 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
 
         {/* Width & Style Adjustments */}
         <AccordionItem value="style">
-          <AccordionTrigger className="text-sm py-2">
+          <AccordionTrigger className="py-2 text-sm">
             <div className="flex items-center">
-              <StretchHorizontal className="h-4 w-4 mr-2" />
+              <StretchHorizontal className="mr-2 h-4 w-4" />
               <span>Width & Style</span>
             </div>
           </AccordionTrigger>
@@ -319,12 +338,12 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
               <div className="space-y-2">
                 <Label className="text-xs">Line Style:</Label>
                 <div className="grid grid-cols-3 gap-2">
-                  {lineStyles.map((style) => (
+                  {lineStyles.map(style => (
                     <Button
                       key={style.name}
                       variant="outline"
                       size="sm"
-                      className="text-xs h-7"
+                      className="h-7 text-xs"
                       onClick={() => applyLineStyle(style)}
                     >
                       {style.name}
@@ -332,7 +351,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                   ))}
                 </div>
               </div>
-              
+
               {/* Line Width Controls */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -344,10 +363,10 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                   min={1}
                   max={10}
                   step={1}
-                  onValueChange={(value) => setPrimaryLineWidth(value[0])}
+                  onValueChange={value => setPrimaryLineWidth(value[0])}
                 />
-                
-                <div className="flex items-center justify-between mt-3">
+
+                <div className="mt-3 flex items-center justify-between">
                   <Label className="text-xs">Secondary Width:</Label>
                   <span className="text-xs font-medium">{secondaryLineWidth}px</span>
                 </div>
@@ -356,7 +375,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                   min={1}
                   max={10}
                   step={1}
-                  onValueChange={(value) => setSecondaryLineWidth(value[0])}
+                  onValueChange={value => setSecondaryLineWidth(value[0])}
                 />
               </div>
             </div>
@@ -366,9 +385,9 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
         {/* Elevation Profile (when data available) */}
         {hasElevationData && (
           <AccordionItem value="elevation">
-            <AccordionTrigger className="text-sm py-2">
+            <AccordionTrigger className="py-2 text-sm">
               <div className="flex items-center">
-                <Mountain className="h-4 w-4 mr-2" />
+                <Mountain className="mr-2 h-4 w-4" />
                 <span>Elevation Profile</span>
               </div>
             </AccordionTrigger>
@@ -376,14 +395,14 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">Show Elevation Profile:</Label>
-                  <Switch 
+                  <Switch
                     checked={showElevationProfile}
                     onCheckedChange={setShowElevationProfile}
                   />
                 </div>
-                
+
                 {showElevationProfile && (
-                  <div className="rounded-lg bg-secondary/50 p-2 h-40 flex items-center justify-center">
+                  <div className="flex h-40 items-center justify-center rounded-lg bg-secondary/50 p-2">
                     <div className="text-xs text-muted-foreground">
                       Elevation data visualization would appear here
                     </div>
@@ -396,9 +415,9 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
 
         {/* Similarity Analysis */}
         <AccordionItem value="similarity">
-          <AccordionTrigger className="text-sm py-2">
+          <AccordionTrigger className="py-2 text-sm">
             <div className="flex items-center">
-              <Percent className="h-4 w-4 mr-2" />
+              <Percent className="mr-2 h-4 w-4" />
               <span>Similarity Analysis</span>
             </div>
           </AccordionTrigger>
@@ -406,21 +425,21 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
             <div className="space-y-3">
               {primaryCoordinates.length > 0 && secondaryCoordinates.length > 0 ? (
                 <>
-                  <Button 
-                    size="sm" 
-                    className="w-full text-xs bg-white/80 hover:bg-white text-black"
+                  <Button
+                    size="sm"
+                    className="w-full bg-white/80 text-xs text-black hover:bg-white"
                     onClick={calculateSimilarityScore}
                   >
                     Calculate Similarity Score
                   </Button>
-                  
+
                   {similarityScore !== null && (
                     <div className="rounded-lg bg-secondary/50 p-3 text-center">
                       <div className="text-2xl font-bold">{similarityScore}%</div>
-                      <div className="text-xs text-muted-foreground mt-1">Path Similarity</div>
+                      <div className="mt-1 text-xs text-muted-foreground">Path Similarity</div>
                     </div>
                   )}
-                  
+
                   <div className="text-xs text-muted-foreground">
                     Similarity score considers path length, shape, and point distribution.
                   </div>
@@ -436,9 +455,9 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
 
         {/* Time Alignment */}
         <AccordionItem value="time">
-          <AccordionTrigger className="text-sm py-2">
+          <AccordionTrigger className="py-2 text-sm">
             <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-2" />
+              <Clock className="mr-2 h-4 w-4" />
               <span>Time Alignment</span>
             </div>
           </AccordionTrigger>
@@ -446,33 +465,25 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Align Temporal Data:</Label>
-                <Switch 
+                <Switch
                   checked={false}
                   onCheckedChange={() => {
                     toast.info('Time alignment feature coming soon');
                   }}
                 />
               </div>
-              
-              <div className="grid grid-cols-2 gap-2 my-2">
+
+              <div className="my-2 grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">Start Time:</Label>
-                  <Input 
-                    type="datetime-local"
-                    className="h-7 text-xs"
-                    disabled
-                  />
+                  <Input type="datetime-local" className="h-7 text-xs" disabled />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">End Time:</Label>
-                  <Input 
-                    type="datetime-local"
-                    className="h-7 text-xs"
-                    disabled
-                  />
+                  <Input type="datetime-local" className="h-7 text-xs" disabled />
                 </div>
               </div>
-              
+
               <div className="text-xs text-muted-foreground">
                 Time alignment requires temporal data to be included in the polyline.
               </div>
@@ -484,4 +495,4 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
   );
 };
 
-export default AdvancedFeatures; 
+export default AdvancedFeatures;

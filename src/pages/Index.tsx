@@ -25,7 +25,7 @@ const Index = () => {
     precision,
     setPrecision,
     mode,
-    toggleMode
+    toggleMode,
   } = usePolyline();
 
   const {
@@ -41,9 +41,9 @@ const Index = () => {
     showDivergence,
     setShowDivergence,
     showIntersections,
-    setShowIntersections
+    setShowIntersections,
   } = usePolylineComparison();
-  
+
   // Add styling state
   const [primaryColor, setPrimaryColor] = useState('#3b82f6');
   const [secondaryColor, setSecondaryColor] = useState('#10b981');
@@ -51,26 +51,46 @@ const Index = () => {
   const [secondaryLineWidth, setSecondaryLineWidth] = useState(3);
   const [primaryLineDash, setPrimaryLineDash] = useState<number[]>([]);
   const [secondaryLineDash, setSecondaryLineDash] = useState<number[]>([]);
-  
+
   return (
-    <div className="flex flex-col h-screen p-2 md:p-3 max-w-full mx-auto">
+    <div className="mx-auto flex h-screen max-w-full flex-col p-2 md:p-3">
       <Helmet>
-        <title>Free Online Polyline Decoder, Encoder & Visualizer | Interactive Map Visualization Tool</title>
-        <meta name="description" content="Decode, encode and visualize Google polylines instantly with our free online tool. Interactive map visualization for routes, compare multiple polylines, and export to various formats." />
-        <meta name="keywords" content="online polyline decoder, polyline encoder, polyline visualizer, google polyline, decode polyline, encode polyline, polyline map visualization, polyline tool, interactive map, polyline converter" />
+        <title>
+          Free Online Polyline Decoder, Encoder & Visualizer | Interactive Map Visualization Tool
+        </title>
+        <meta
+          name="description"
+          content="Decode, encode and visualize Google polylines instantly with our free online tool. Interactive map visualization for routes, compare multiple polylines, and export to various formats."
+        />
+        <meta
+          name="keywords"
+          content="online polyline decoder, polyline encoder, polyline visualizer, google polyline, decode polyline, encode polyline, polyline map visualization, polyline tool, interactive map, polyline converter"
+        />
         <link rel="canonical" href="https://polylinedecoder.online" />
-        <meta property="og:title" content="Free Online Polyline Decoder, Encoder & Visualizer | Interactive Map Tool" />
-        <meta property="og:description" content="Decode, encode and visualize Google polylines instantly with our free online tool. Interactive map visualization for routes and GPS tracks." />
-        <meta name="twitter:title" content="Free Online Polyline Decoder, Encoder & Visualizer Tool" />
-        <meta name="twitter:description" content="Decode, encode and visualize Google polylines with interactive maps. Visualize routes and export to various formats." />
+        <meta
+          property="og:title"
+          content="Free Online Polyline Decoder, Encoder & Visualizer | Interactive Map Tool"
+        />
+        <meta
+          property="og:description"
+          content="Decode, encode and visualize Google polylines instantly with our free online tool. Interactive map visualization for routes and GPS tracks."
+        />
+        <meta
+          name="twitter:title"
+          content="Free Online Polyline Decoder, Encoder & Visualizer Tool"
+        />
+        <meta
+          name="twitter:description"
+          content="Decode, encode and visualize Google polylines with interactive maps. Visualize routes and export to various formats."
+        />
       </Helmet>
-      
+
       <Header />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 flex-1 overflow-hidden">
-        <div className="lg:col-span-3 h-[calc(100vh-12rem)] rounded-xl overflow-hidden relative">
-          <Map 
-            coordinates={coordinates} 
+
+      <div className="grid flex-1 grid-cols-1 gap-3 overflow-hidden lg:grid-cols-4">
+        <div className="relative h-[calc(100vh-12rem)] overflow-hidden rounded-xl lg:col-span-3">
+          <Map
+            coordinates={coordinates}
             secondaryCoordinates={secondaryCoordinates}
             isLoading={isDecoding || isEncoding}
             comparisonMode={comparisonMode}
@@ -86,11 +106,11 @@ const Index = () => {
             secondaryLineDash={secondaryLineDash}
           />
         </div>
-        
-        <div className="space-y-3 overflow-y-auto h-[calc(100vh-12rem)] pr-1 scrollbar-hide">
-          <PolylineInput 
-            value={polyline} 
-            onChange={setPolyline} 
+
+        <div className="scrollbar-hide h-[calc(100vh-12rem)] space-y-3 overflow-y-auto pr-1">
+          <PolylineInput
+            value={polyline}
+            onChange={setPolyline}
             onClear={handleClear}
             precision={precision}
             onPrecisionChange={setPrecision}
@@ -99,7 +119,7 @@ const Index = () => {
             isEncoding={isEncoding}
             onCoordinatesInput={setCoordinatesFromText}
           />
-          
+
           <PolylineComparison
             primaryPolyline={polyline}
             setPrimaryPolyline={setPolyline}
@@ -118,13 +138,13 @@ const Index = () => {
             precision={precision}
             setPrecision={setPrecision}
           />
-          
-          <Statistics 
-            coordinates={coordinates} 
+
+          <Statistics
+            coordinates={coordinates}
             secondaryCoordinates={secondaryCoordinates}
-            distance={distance} 
+            distance={distance}
           />
-          
+
           <AdvancedFeatures
             primaryCoordinates={coordinates}
             secondaryCoordinates={secondaryCoordinates}
@@ -143,14 +163,14 @@ const Index = () => {
             secondaryLineDash={secondaryLineDash}
             setSecondaryLineDash={setSecondaryLineDash}
           />
-          
-          <CoordinatesViewer 
-            primaryCoordinates={coordinates} 
-            secondaryCoordinates={secondaryCoordinates} 
+
+          <CoordinatesViewer
+            primaryCoordinates={coordinates}
+            secondaryCoordinates={secondaryCoordinates}
             primaryLabel="Primary Path"
             secondaryLabel="Secondary Path"
           />
-          
+
           <ExportOptions coordinates={coordinates} />
         </div>
       </div>

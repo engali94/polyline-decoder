@@ -45,7 +45,7 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
   primaryLineWidth,
   secondaryLineWidth,
   primaryLineDash,
-  secondaryLineDash
+  secondaryLineDash,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const secondMapContainer = useRef<HTMLDivElement>(null);
@@ -56,13 +56,13 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
     const currentStyle = styleOptions.find(style => style.id === currentStyleId);
     if (!currentStyle) return;
 
-    console.log("Initializing primary map");
+    console.log('Initializing primary map');
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: currentStyle.url,
       center: [-74.5, 40],
       zoom: 2,
-      attributionControl: false
+      attributionControl: false,
     });
 
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
@@ -76,11 +76,11 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
   }, [styleOptions.length, map, currentStyleId]);
 
   useEffect(() => {
-    console.log("Split view active changed:", splitViewActive, "Comparison mode:", comparisonMode);
-    
+    console.log('Split view active changed:', splitViewActive, 'Comparison mode:', comparisonMode);
+
     if (!splitViewActive || !secondMapContainer.current) {
       if (secondMap.current) {
-        console.log("Removing second map as split view is deactivated");
+        console.log('Removing second map as split view is deactivated');
         secondMap.current.remove();
         secondMap.current = null;
       }
@@ -90,14 +90,14 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
     const currentStyle = styleOptions.find(style => style.id === currentStyleId);
     if (!currentStyle) return;
 
-    console.log("Creating second map for side-by-side view");
-    
+    console.log('Creating second map for side-by-side view');
+
     secondMap.current = new maplibregl.Map({
       container: secondMapContainer.current,
       style: currentStyle.url,
       center: [-74.5, 40],
       zoom: 2,
-      attributionControl: false
+      attributionControl: false,
     });
 
     secondMap.current.addControl(new maplibregl.NavigationControl(), 'top-right');
@@ -154,20 +154,20 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
         primaryLineDash={primaryLineDash}
         secondaryLineDash={secondaryLineDash}
       />
-      
+
       <div className={`h-full w-full ${splitViewActive ? 'hidden md:block md:w-1/2 md:pr-1' : ''}`}>
         <div ref={mapContainer} className="map-container h-full w-full" />
       </div>
-      
+
       {splitViewActive && (
         <div className="h-full md:absolute md:right-0 md:top-0 md:w-1/2 md:pl-1">
           <div ref={secondMapContainer} className="map-container h-full w-full" />
-          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
             <Split className="h-6 w-6 text-primary-foreground opacity-70" />
           </div>
         </div>
       )}
-      
+
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
           <div className="animate-pulse text-primary">Loading map data...</div>

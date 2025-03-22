@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, Copy, Sparkles, ArrowDownUp, Upload, Download } from 'lucide-react';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from './ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
 import { Switch } from './ui/switch';
@@ -23,20 +17,20 @@ interface PolylineInputProps {
   onCoordinatesInput?: (text: string) => void;
 }
 
-const PolylineInput: React.FC<PolylineInputProps> = ({ 
-  value, 
-  onChange, 
+const PolylineInput: React.FC<PolylineInputProps> = ({
+  value,
+  onChange,
   onClear,
-  precision = 5, 
+  precision = 5,
   onPrecisionChange,
   mode = 'decode',
   onModeChange,
   isEncoding = false,
-  onCoordinatesInput
+  onCoordinatesInput,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [coordinatesText, setCoordinatesText] = useState('');
-  
+
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
@@ -57,15 +51,19 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
   };
 
   return (
-    <div className={`panel transition-all duration-300 ${isFocused ? 'ring-1 ring-primary/20' : ''}`}>
-      <div className="flex items-center justify-between mb-2">
+    <div
+      className={`panel transition-all duration-300 ${isFocused ? 'ring-1 ring-primary/20' : ''}`}
+    >
+      <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <span className="bg-primary/10 px-2 py-0.5 rounded-full text-xs font-medium text-primary">
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
             {mode === 'decode' ? 'Decode' : 'Encode'}
           </span>
           {onModeChange && (
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-muted-foreground">{mode === 'decode' ? 'Polyline → Coordinates' : 'Coordinates → Polyline'}</span>
+              <span className="text-xs text-muted-foreground">
+                {mode === 'decode' ? 'Polyline → Coordinates' : 'Coordinates → Polyline'}
+              </span>
               <div className="flex items-center space-x-1">
                 <Switch checked={mode === 'encode'} onCheckedChange={onModeChange} />
                 <ArrowDownUp className="h-3 w-3 text-muted-foreground" />
@@ -75,9 +73,9 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
         </div>
         <div className="flex items-center space-x-1">
           {onPrecisionChange && (
-            <Select 
-              value={precision.toString()} 
-              onValueChange={(val) => onPrecisionChange(Number(val))}
+            <Select
+              value={precision.toString()}
+              onValueChange={val => onPrecisionChange(Number(val))}
             >
               <SelectTrigger className="h-8 min-w-[80px] text-xs">
                 <SelectValue placeholder="Precision" />
@@ -91,79 +89,85 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
           )}
           <button
             onClick={handlePaste}
-            className="p-1.5 text-xs bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
+            className="rounded-md bg-secondary p-1.5 text-xs transition-colors hover:bg-secondary/80"
           >
             Paste
           </button>
           <button
             onClick={onClear}
-            className="p-1.5 text-muted-foreground hover:text-destructive rounded-md transition-colors"
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:text-destructive"
             disabled={!value && !coordinatesText}
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
-      
+
       {mode === 'decode' ? (
         <textarea
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder="Paste your encoded polyline here..."
-          className="w-full h-24 resize-none bg-transparent border-0 p-0 placeholder:text-muted-foreground focus:ring-0 focus:outline-none text-sm font-mono"
+          className="h-24 w-full resize-none border-0 bg-transparent p-0 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
         />
       ) : (
         <div>
           <textarea
             value={coordinatesText}
-            onChange={(e) => setCoordinatesText(e.target.value)}
+            onChange={e => setCoordinatesText(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder="Paste your coordinates here (format: longitude,latitude or one coordinate per line)..."
-            className="w-full h-24 resize-none bg-transparent border-0 p-0 placeholder:text-muted-foreground focus:ring-0 focus:outline-none text-sm font-mono"
+            className="h-24 w-full resize-none border-0 bg-transparent p-0 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
           />
           <div className="mt-2 flex justify-end">
             <button
               onClick={handleCoordinatesSubmit}
               disabled={!coordinatesText || isEncoding}
-              className="p-1.5 text-xs flex items-center space-x-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors disabled:opacity-50"
+              className="flex items-center space-x-1 rounded-md bg-primary p-1.5 text-xs text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
-              <Upload className="h-3 w-3 mr-1" />
+              <Upload className="mr-1 h-3 w-3" />
               <span>{isEncoding ? 'Encoding...' : 'Encode'}</span>
             </button>
           </div>
         </div>
       )}
-      
-      <div className="mt-2 flex justify-between items-center">
+
+      <div className="mt-2 flex items-center justify-between">
         <div className="text-xs text-muted-foreground">
           {mode === 'decode'
-            ? (value ? `${value.length} characters` : 'No polyline data')
-            : (value ? `Encoded polyline (${value.length} chars)` : 'No encoded result yet')}
+            ? value
+              ? `${value.length} characters`
+              : 'No polyline data'
+            : value
+              ? `Encoded polyline (${value.length} chars)`
+              : 'No encoded result yet'}
         </div>
         <div className="flex space-x-1">
           {value && (
             <button
               onClick={() => navigator.clipboard.writeText(value)}
-              className="p-1.5 text-xs flex items-center space-x-1 bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
+              className="flex items-center space-x-1 rounded-md bg-secondary p-1.5 text-xs transition-colors hover:bg-secondary/80"
             >
-              <Copy className="h-3 w-3 mr-1" />
+              <Copy className="mr-1 h-3 w-3" />
               <span>Copy</span>
             </button>
           )}
-          <button 
+          <button
             onClick={() => {
               if (mode === 'decode') {
-                onChange('}~kvHmzrr@ba\\hnc@jiu@r{Zqx~@hjp@pwEhnc@zhu@zflAbxn@fhjBvqHroaAgcnAp}gAeahAtqGkngAinc@_h|@r{Zad\\y|_D}_y@swg@ysg@}llBpoZqa{@xrw@~eBaaX}{uAero@uqGadY}nr@`dYs_NquNgbjAf{l@|yh@bfc@}nr@z}q@i|i@zgz@r{ZhjFr}gApob@ff}@laIsen@dgYhdPvbIren@');
+                onChange(
+                  '}~kvHmzrr@ba\\hnc@jiu@r{Zqx~@hjp@pwEhnc@zhu@zflAbxn@fhjBvqHroaAgcnAp}gAeahAtqGkngAinc@_h|@r{Zad\\y|_D}_y@swg@ysg@}llBpoZqa{@xrw@~eBaaX}{uAero@uqGadY}nr@`dYs_NquNgbjAf{l@|yh@bfc@}nr@z}q@i|i@zgz@r{ZhjFr}gApob@ff}@laIsen@dgYhdPvbIren@'
+                );
               } else {
                 setCoordinatesText('-122.4194,37.7749\n-122.4099,37.7912\n-122.4330,37.7866');
               }
-            }} 
-            className="p-1.5 text-xs flex items-center space-x-1 bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-colors"
+            }}
+            className="flex items-center space-x-1 rounded-md bg-primary/10 p-1.5 text-xs text-primary transition-colors hover:bg-primary/20"
           >
-            <Sparkles className="h-3 w-3 mr-1" />
+            <Sparkles className="mr-1 h-3 w-3" />
             <span>Sample</span>
           </button>
         </div>

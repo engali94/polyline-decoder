@@ -5,7 +5,7 @@ import {
   usePrimaryPolyline,
   useSecondaryPolyline,
   useSideBySideView,
-  useCoordinateValidation
+  useCoordinateValidation,
 } from './effects';
 
 interface MapEffectsProps {
@@ -46,7 +46,7 @@ const MapEffects = (props: MapEffectsProps) => {
     primaryLineWidth,
     secondaryLineWidth,
     primaryLineDash,
-    secondaryLineDash
+    secondaryLineDash,
   } = props;
 
   // Validate coordinates - simplify validation to boolean
@@ -63,7 +63,7 @@ const MapEffects = (props: MapEffectsProps) => {
     comparisonType,
     splitViewActive,
     validCoordinates,
-    validSecondaryCoords
+    validSecondaryCoords,
   });
 
   useEffect(() => {
@@ -80,7 +80,7 @@ const MapEffects = (props: MapEffectsProps) => {
     validCoordinates,
     color: primaryColor,
     lineWidth: primaryLineWidth,
-    lineDash: primaryLineDash
+    lineDash: primaryLineDash,
   });
 
   useSecondaryPolyline({
@@ -97,7 +97,7 @@ const MapEffects = (props: MapEffectsProps) => {
     validSecondaryCoords,
     color: secondaryColor,
     lineWidth: secondaryLineWidth,
-    lineDash: secondaryLineDash
+    lineDash: secondaryLineDash,
   });
 
   // Second map effect for side-by-side view
@@ -109,7 +109,7 @@ const MapEffects = (props: MapEffectsProps) => {
     validSecondaryCoords,
     color: secondaryColor,
     lineWidth: secondaryLineWidth,
-    lineDash: secondaryLineDash
+    lineDash: secondaryLineDash,
   });
 
   return null;

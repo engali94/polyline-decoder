@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Switch } from '../ui/switch';
 
@@ -9,11 +8,11 @@ interface DiffTabProps {
   setShowIntersections: (value: boolean) => void;
 }
 
-const DiffTab: React.FC<DiffTabProps> = ({ 
-  showDivergence, 
-  setShowDivergence, 
-  showIntersections, 
-  setShowIntersections 
+const DiffTab: React.FC<DiffTabProps> = ({
+  showDivergence,
+  setShowDivergence,
+  showIntersections,
+  setShowIntersections,
 }) => {
   return (
     <div className="space-y-3">
@@ -21,19 +20,13 @@ const DiffTab: React.FC<DiffTabProps> = ({
         <label className="flex items-center gap-2 text-sm">
           <span>Show Divergence</span>
         </label>
-        <Switch 
-          checked={showDivergence} 
-          onCheckedChange={setShowDivergence} 
-        />
+        <Switch checked={showDivergence} onCheckedChange={setShowDivergence} />
       </div>
       <div className="flex items-center justify-between">
         <label className="flex items-center gap-2 text-sm">
           <span>Show Intersections</span>
         </label>
-        <Switch 
-          checked={showIntersections} 
-          onCheckedChange={setShowIntersections} 
-        />
+        <Switch checked={showIntersections} onCheckedChange={setShowIntersections} />
       </div>
     </div>
   );

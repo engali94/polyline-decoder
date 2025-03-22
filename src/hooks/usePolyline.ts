@@ -14,17 +14,17 @@ export function usePolyline() {
     if (!polyline || mode !== 'decode') {
       return;
     }
-    
+
     setIsDecoding(true);
-    
+
     const timer = setTimeout(() => {
       try {
         const decodedCoordinates = decodePolyline(polyline, precision);
         setCoordinates(decodedCoordinates);
         setDistance(calculateDistance(decodedCoordinates));
-        
+
         if (decodedCoordinates.length > 0) {
-          console.log("First coordinate:", decodedCoordinates[0]);
+          console.log('First coordinate:', decodedCoordinates[0]);
         }
       } catch (error) {
         console.error('Error decoding polyline:', error);
@@ -32,7 +32,7 @@ export function usePolyline() {
         setIsDecoding(false);
       }
     }, 300);
-    
+
     return () => clearTimeout(timer);
   }, [polyline, precision, mode]);
 
@@ -47,15 +47,15 @@ export function usePolyline() {
       try {
         const encodedPolyline = encodePolyline(coordinates, precision);
         setPolyline(encodedPolyline);
-        
-        console.log("Encoded polyline:", encodedPolyline);
+
+        console.log('Encoded polyline:', encodedPolyline);
       } catch (error) {
         console.error('Error encoding coordinates:', error);
       } finally {
         setIsEncoding(false);
       }
     }, 300);
-    
+
     return () => clearTimeout(timer);
   }, [coordinates, precision, mode]);
 
@@ -69,18 +69,18 @@ export function usePolyline() {
     try {
       const lines = input.trim().split(/[\n,]+/);
       const result: [number, number][] = [];
-      
+
       for (let i = 0; i < lines.length; i += 2) {
         const lng = parseFloat(lines[i]);
         const lat = parseFloat(lines[i + 1]);
-        
+
         if (!isNaN(lng) && !isNaN(lat)) {
           if (Math.abs(lng) <= 180 && Math.abs(lat) <= 90) {
             result.push([lng, lat]);
           }
         }
       }
-      
+
       return result;
     } catch (error) {
       console.error('Error parsing coordinates:', error);
@@ -98,11 +98,11 @@ export function usePolyline() {
   const toggleMode = () => {
     setMode(prevMode => {
       const newMode = prevMode === 'decode' ? 'encode' : 'decode';
-      
+
       setPolyline('');
       setCoordinates([]);
       setDistance(0);
-      
+
       return newMode;
     });
   };
@@ -120,6 +120,6 @@ export function usePolyline() {
     precision,
     setPrecision,
     mode,
-    toggleMode
+    toggleMode,
   };
 }

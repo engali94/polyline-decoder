@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import * as maplibregl from 'maplibre-gl';
-import { 
-  addPrimaryPolyline, 
-  addSecondaryPolyline, 
+import {
+  addPrimaryPolyline,
+  addSecondaryPolyline,
   addDifferentialAnalysis,
-  cleanupMapLayers
+  cleanupMapLayers,
 } from '../features';
 
 interface UseSecondaryPolylineProps {
@@ -38,68 +38,74 @@ export const useSecondaryPolyline = ({
   validSecondaryCoords,
   color = '#10b981',
   lineWidth = 8,
-  lineDash = []
+  lineDash = [],
 }: UseSecondaryPolylineProps) => {
-  
   useEffect(() => {
-    console.log("🔍 Secondary polyline effect triggered:", {
+    console.log('🔍 Secondary polyline effect triggered:', {
       hasMap: !!map.current,
       comparisonMode,
       comparisonType,
       coords: secondaryCoordinates?.length || 0,
       validSecondaryCoords,
       splitViewActive,
-      coordinates: JSON.stringify(secondaryCoordinates?.slice(0, 2) || [])
+      coordinates: JSON.stringify(secondaryCoordinates?.slice(0, 2) || []),
     });
 
     if (!map.current || isLoading) {
-      console.log("❌ Map not ready or still loading");
+      console.log('❌ Map not ready or still loading');
       return;
     }
-    
+
     if (!comparisonMode) {
-      console.log("❌ Comparison mode not active");
+      console.log('❌ Comparison mode not active');
       return;
     }
-    
+
     if (!secondaryCoordinates || secondaryCoordinates.length < 2) {
-      console.warn("❌ Secondary coordinates missing or insufficient:", secondaryCoordinates);
+      console.warn('❌ Secondary coordinates missing or insufficient:', secondaryCoordinates);
       return;
     }
-    
+
     // Skip rendering secondary line on main map if we're in side-by-side mode
     if (comparisonType === 'sideBySide' && splitViewActive) {
-      console.log("ℹ️ Skipping secondary polyline rendering in side-by-side view");
+      console.log('ℹ️ Skipping secondary polyline rendering in side-by-side view');
       return;
     }
 
     const onMapLoad = () => {
-      console.log("🗺️ Map loaded, adding secondary polyline");
-      
+      console.log('🗺️ Map loaded, adding secondary polyline');
+
       // Clean up previous layers before adding new ones
       cleanupMapLayers(map.current!, comparisonType);
-      
-      console.log("➕ Adding secondary polyline to map:", {
+
+      console.log('➕ Adding secondary polyline to map:', {
         comparisonType,
         overlayOpacity,
         coordCount: secondaryCoordinates.length,
         sampleCoords: JSON.stringify(secondaryCoordinates.slice(0, 2)),
         color,
         lineWidth,
-        lineDash
+        lineDash,
       });
-      
+
       // For overlay and diff mode, always show the secondary polyline
       if (comparisonType === 'overlay' || comparisonType === 'diff') {
-        addSecondaryPolyline(map.current!, secondaryCoordinates, overlayOpacity, color, lineWidth, lineDash);
-        
+        addSecondaryPolyline(
+          map.current!,
+          secondaryCoordinates,
+          overlayOpacity,
+          color,
+          lineWidth,
+          lineDash
+        );
+
         // In diff mode, also show the analysis
         if (comparisonType === 'diff') {
           addDifferentialAnalysis(
             map.current!,
-            coordinates, 
-            secondaryCoordinates, 
-            showDivergence, 
+            coordinates,
+            secondaryCoordinates,
+            showDivergence,
             showIntersections
           );
         }
@@ -108,41 +114,41 @@ export const useSecondaryPolyline = ({
 
     // Wait until map is loaded to add layers
     if (map.current.loaded()) {
-      console.log("Map already loaded, adding secondary polyline now");
+      console.log('Map already loaded, adding secondary polyline now');
       onMapLoad();
     } else {
-      console.log("Map not loaded, waiting for load event");
+      console.log('Map not loaded, waiting for load event');
       map.current.once('load', onMapLoad);
     }
 
     // Re-render when tab changes - essential fix for disappearing polylines
     return () => {
       if (map.current) {
-        console.log("Cleaning up secondary polyline effect");
+        console.log('Cleaning up secondary polyline effect');
         cleanupMapLayers(map.current, comparisonType);
-        
+
         // Immediately re-add primary polyline to prevent it from disappearing
         if (coordinates.length > 0) {
-          console.log("Re-adding primary polyline after cleanup");
+          console.log('Re-adding primary polyline after cleanup');
           // Pass primary line styling from Index.tsx via MapContainer props
           addPrimaryPolyline(
-            map.current, 
-            coordinates, 
-            false, 
-            '#3b82f6',  // Default primary color 
-            3,          // Default primary line width
-            []          // Default solid line (empty array for no dash)
+            map.current,
+            coordinates,
+            false,
+            '#3b82f6', // Default primary color
+            3, // Default primary line width
+            [] // Default solid line (empty array for no dash)
           );
         }
       }
     };
   }, [
-    secondaryCoordinates, 
-    comparisonMode, 
-    comparisonType, 
-    overlayOpacity, 
-    showDivergence, 
-    showIntersections, 
+    secondaryCoordinates,
+    comparisonMode,
+    comparisonType,
+    overlayOpacity,
+    showDivergence,
+    showIntersections,
     splitViewActive,
     coordinates,
     map,
@@ -150,6 +156,6 @@ export const useSecondaryPolyline = ({
     validSecondaryCoords,
     color,
     lineWidth,
-    lineDash
+    lineDash,
   ]);
 };
