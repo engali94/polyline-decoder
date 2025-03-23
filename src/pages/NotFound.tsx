@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import Header from '../components/Header';
 
 const NotFound = () => {
   const location = useLocation();
@@ -11,6 +12,7 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Header shareableState={{}} />
       <div className="glass max-w-md animate-scale-in rounded-2xl p-8 text-center">
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
           <span className="text-3xl font-bold text-primary">404</span>

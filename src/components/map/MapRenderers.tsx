@@ -24,6 +24,7 @@ interface MapRenderersProps {
   secondaryLineWidth: number;
   primaryLineDash: number[];
   secondaryLineDash: number[];
+  syncMaps?: boolean;
 }
 
 const MapRenderers: React.FC<MapRenderersProps> = ({
@@ -46,9 +47,11 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
   secondaryLineWidth,
   primaryLineDash,
   secondaryLineDash,
+  syncMaps = false,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const secondMapContainer = useRef<HTMLDivElement>(null);
+  const mapSyncEventRefs = useRef<{ [key: string]: (e: any) => void }>({});
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -102,23 +105,6 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
 
     secondMap.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    const syncMaps = (sourceMap: maplibregl.Map, targetMap: maplibregl.Map) => {
-      sourceMap.on('move', () => {
-        if (targetMap.getCenter().toString() === sourceMap.getCenter().toString()) {
-          return;
-        }
-        targetMap.setCenter(sourceMap.getCenter());
-        targetMap.setZoom(sourceMap.getZoom());
-        targetMap.setBearing(sourceMap.getBearing());
-        targetMap.setPitch(sourceMap.getPitch());
-      });
-    };
-
-    if (map.current) {
-      syncMaps(map.current, secondMap.current);
-      syncMaps(secondMap.current, map.current);
-    }
-
     setTimeout(() => {
       if (secondMap.current) {
         secondMap.current.resize();
@@ -132,6 +118,54 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
       }
     };
   }, [splitViewActive, styleOptions.length, map, secondMap, currentStyleId]);
+
+  useEffect(() => {
+    if (!map.current || !secondMap.current) return;
+    
+    const cleanupSyncEvents = () => {
+      if (mapSyncEventRefs.current.primaryMoveHandler) {
+        map.current?.off('move', mapSyncEventRefs.current.primaryMoveHandler);
+      }
+      if (mapSyncEventRefs.current.secondaryMoveHandler) {
+        secondMap.current?.off('move', mapSyncEventRefs.current.secondaryMoveHandler);
+      }
+    };
+    
+    cleanupSyncEvents();
+    
+    if (syncMaps) {
+      console.log('Enabling map synchronization between views');
+      
+      mapSyncEventRefs.current.primaryMoveHandler = (e: any) => {
+        if (!secondMap.current) return;
+        if (secondMap.current.getCenter().toString() === map.current?.getCenter().toString()) {
+          return;
+        }
+        secondMap.current.setCenter(map.current!.getCenter());
+        secondMap.current.setZoom(map.current!.getZoom());
+        secondMap.current.setBearing(map.current!.getBearing());
+        secondMap.current.setPitch(map.current!.getPitch());
+      };
+      
+      mapSyncEventRefs.current.secondaryMoveHandler = (e: any) => {
+        if (!map.current) return;
+        if (map.current.getCenter().toString() === secondMap.current?.getCenter().toString()) {
+          return;
+        }
+        map.current.setCenter(secondMap.current!.getCenter());
+        map.current.setZoom(secondMap.current!.getZoom());
+        map.current.setBearing(secondMap.current!.getBearing());
+        map.current.setPitch(secondMap.current!.getPitch());
+      };
+      
+      map.current.on('move', mapSyncEventRefs.current.primaryMoveHandler);
+      secondMap.current.on('move', mapSyncEventRefs.current.secondaryMoveHandler);
+    } else {
+      console.log('Maps will operate independently - no synchronization');
+    }
+    
+    return cleanupSyncEvents;
+  }, [syncMaps, map.current, secondMap.current]);
 
   return (
     <>

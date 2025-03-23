@@ -1,8 +1,14 @@
 import React from 'react';
 import { Github, Map, Info, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ShareButton from './ShareButton';
+import { ShareableState } from '../utils/urlState';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  shareableState?: ShareableState;
+}
+
+const Header: React.FC<HeaderProps> = ({ shareableState }) => {
   return (
     <header className="glass mb-4 flex w-full animate-slide-down items-center justify-between rounded-xl p-4">
       <div className="flex items-center space-x-2">
@@ -38,6 +44,7 @@ const Header: React.FC = () => {
             <BookOpen className="mr-1 h-3.5 w-3.5" />
             Docs
           </Link>
+          {shareableState && <ShareButton state={shareableState} />}
         </nav>
         <span className="hidden text-xs text-muted-foreground md:inline-block">
           Free online tool for Google polyline format

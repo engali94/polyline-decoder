@@ -1,39 +1,79 @@
-// Google Polyline decoder implementation
 export function decodePolyline(encoded: string, precision: number = 5): [number, number][] {
-  if (!encoded || encoded.length === 0) {
-    return [];
-  }
-
-  const sanitizedEncoded = encoded.replace(/\\\\/g, '\\');
-
-  const effectivePrecision =
-    sanitizedEncoded.startsWith('w`x') || sanitizedEncoded.startsWith('_') ? 6 : precision;
-
-  const mul = Math.pow(10, effectivePrecision);
-  const inv = 1.0 / mul;
-
-  const decoded: [number, number][] = [];
-  const previous = [0, 0];
-  let i = 0;
-
-  while (i < sanitizedEncoded.length) {
-    const ll = [0, 0];
-    for (let j = 0; j < 2; j++) {
-      let shift = 0;
-      let byte = 0x20;
-      while (byte >= 0x20) {
-        byte = sanitizedEncoded.charCodeAt(i++) - 63;
-        ll[j] |= (byte & 0x1f) << shift;
-        shift += 5;
-      }
-      ll[j] = previous[j] + (ll[j] & 1 ? ~(ll[j] >> 1) : ll[j] >> 1);
-      previous[j] = ll[j];
+  try {
+    if (!encoded || encoded.length === 0) {
+      console.warn('Empty polyline string provided to decoder');
+      return [];
     }
 
-    decoded.push([ll[1] * inv, ll[0] * inv]);
-  }
+    console.log(`Decoding polyline: '${encoded.substring(0, 30)}...' (length: ${encoded.length}) with precision ${precision}`);
+    
+    const sanitizedEncoded = encoded.replace(/\\\\/g, '\\');
 
-  return decoded;
+    const effectivePrecision =
+      sanitizedEncoded.startsWith('w`x') || sanitizedEncoded.startsWith('_') ? 6 : precision;
+    
+    console.log(`Using effective precision: ${effectivePrecision}`);
+
+    const mul = Math.pow(10, effectivePrecision);
+    const inv = 1.0 / mul;
+
+    const decoded: [number, number][] = [];
+    const previous = [0, 0];
+    let i = 0;
+
+    try {
+      while (i < sanitizedEncoded.length) {
+        const ll = [0, 0];
+        for (let j = 0; j < 2; j++) {
+          let shift = 0;
+          let byte = 0x20;
+          while (byte >= 0x20) {
+            if (i >= sanitizedEncoded.length) {
+              console.error('Unexpected end of polyline string');
+              return decoded.length > 0 ? decoded : [];
+            }
+            
+            byte = sanitizedEncoded.charCodeAt(i++) - 63;
+            ll[j] |= (byte & 0x1f) << shift;
+            shift += 5;
+          }
+          ll[j] = previous[j] + (ll[j] & 1 ? ~(ll[j] >> 1) : ll[j] >> 1);
+          previous[j] = ll[j];
+        }
+
+        const lat = ll[0] * inv;
+        const lng = ll[1] * inv;
+        
+        if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+          decoded.push([lng, lat]);
+        } else {
+          console.warn(`Invalid coordinate skipped: [${lng}, ${lat}]`);
+        }
+      }
+    } catch (innerError) {
+      console.error('Error during polyline decoding loop:', innerError);
+      if (decoded.length > 0) {
+        console.log(`Returning ${decoded.length} coordinates that were successfully decoded`);
+        return decoded;
+      }
+      return [];
+    }
+
+    if (decoded.length > 0) {
+      console.log(`Successfully decoded ${decoded.length} coordinates`);
+      console.log('First coordinate:', decoded[0]);
+      if (decoded.length > 1) {
+        console.log('Last coordinate:', decoded[decoded.length - 1]);
+      }
+    } else {
+      console.warn('No valid coordinates were decoded from the polyline');
+    }
+    
+    return decoded;
+  } catch (error) {
+    console.error('Error decoding polyline:', error);
+    return [];
+  }
 }
 
 export function encodePolyline(coordinates: [number, number][], precision: number = 5): string {

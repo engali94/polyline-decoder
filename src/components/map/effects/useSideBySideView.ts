@@ -106,7 +106,7 @@ export const useSideBySideView = ({
         console.log('✅ Added polyline layer to second map');
 
         if (secondaryCoordinates.length > 0) {
-          new maplibregl.Marker({ color }) // Green start marker
+          new maplibregl.Marker({ color }) 
             .setLngLat(secondaryCoordinates[0])
             .addTo(secondMap.current);
 
@@ -125,8 +125,15 @@ export const useSideBySideView = ({
         try {
           const bounds = new maplibregl.LngLatBounds();
           secondaryCoordinates.forEach(coord => bounds.extend(coord as [number, number]));
-          secondMap.current.fitBounds(bounds, { padding: 50, duration: 1000 });
-          console.log('✅ Fit map to polyline bounds');
+          
+          if (!bounds.isEmpty()) {
+            console.log('✅ Fitting second map to secondary polyline bounds - independent of primary map');
+            secondMap.current.fitBounds(bounds, { 
+              padding: 50, 
+              duration: 1000,
+              maxZoom: 15  // Don't zoom in too far
+            });
+          }
         } catch (e) {
           console.error('Error fitting map to bounds:', e);
         }

@@ -1,24 +1,76 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { decodePolyline } from '../utils/polylineDecoder';
 import { toast } from 'sonner';
 
-type ComparisonType = 'overlay' | 'sideBySide' | 'diff';
+export type ComparisonType = 'overlay' | 'sideBySide' | 'diff';
 
-export function usePolylineComparison() {
-  const [comparisonMode, setComparisonMode] = useState(false);
-  const [secondaryPolyline, setSecondaryPolyline] = useState('');
-  const [secondaryCoordinates, setSecondaryCoordinates] = useState<[number, number][]>([]);
-  const [comparisonType, setComparisonType] = useState<ComparisonType>('overlay');
-  const [overlayOpacity, setOverlayOpacity] = useState(80);
-  const [showDivergence, setShowDivergence] = useState(true);
-  const [showIntersections, setShowIntersections] = useState(true);
+interface PolylineComparisonOptions {
+  initialComparisonMode?: boolean;
+  initialSecondaryPolyline?: string;
+  initialSecondaryCoordinates?: [number, number][];
+  initialComparisonType?: ComparisonType;
+  initialOverlayOpacity?: number;
+  initialShowDivergence?: boolean;
+  initialShowIntersections?: boolean;
+}
+
+export function usePolylineComparison(options: PolylineComparisonOptions = {}) {
+  const {
+    initialComparisonMode = false,
+    initialSecondaryPolyline = '',
+    initialSecondaryCoordinates = [],
+    initialComparisonType = 'overlay',
+    initialOverlayOpacity = 80,
+    initialShowDivergence = true,
+    initialShowIntersections = true
+  } = options;
+  
+  console.log('usePolylineComparison init with:', { 
+    initialComparisonMode,
+    hasInitialSecondaryPolyline: !!initialSecondaryPolyline,
+    initialSecondaryCoordinatesCount: initialSecondaryCoordinates.length,
+    initialComparisonType
+  });
+  
+  const [comparisonMode, setComparisonMode] = useState(initialComparisonMode);
+  const [secondaryPolyline, setSecondaryPolyline] = useState(initialSecondaryPolyline);
+  const [secondaryCoordinates, setSecondaryCoordinates] = useState<[number, number][]>(initialSecondaryCoordinates);
+  const [comparisonType, setComparisonType] = useState<ComparisonType>(initialComparisonType);
+  const [overlayOpacity, setOverlayOpacity] = useState(initialOverlayOpacity);
+  const [showDivergence, setShowDivergence] = useState(initialShowDivergence);
+  const [showIntersections, setShowIntersections] = useState(initialShowIntersections);
+  const initialLoadRef = useRef(true);
+  
+  useEffect(() => {
+    if (initialLoadRef.current && initialSecondaryPolyline && initialSecondaryCoordinates.length === 0 && initialComparisonMode) {
+      console.log('Decoding initial secondary polyline because no coordinates were provided');
+      initialLoadRef.current = false;
+      
+      try {
+        const decodedCoordinates = decodePolyline(initialSecondaryPolyline);
+        
+        if (decodedCoordinates.length >= 2) {
+          setSecondaryCoordinates(decodedCoordinates);
+          console.log('Initialized secondary polyline with', decodedCoordinates.length, 'points');
+        } else {
+          console.warn('Initial secondary polyline has too few points');
+        }
+      } catch (error) {
+        console.error('Error decoding initial secondary polyline:', error);
+      }
+    } else if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      if (initialSecondaryCoordinates.length > 0) {
+        console.log('Using pre-decoded secondary coordinates:', initialSecondaryCoordinates.length);
+      }
+    }
+  }, [initialSecondaryPolyline, initialComparisonMode, initialSecondaryCoordinates]);
 
   useEffect(() => {
-    console.log(
-      'Secondary polyline changed:',
-      secondaryPolyline.substring(0, 20) + (secondaryPolyline.length > 20 ? '...' : '')
-    );
-
+    if (initialLoadRef.current) {
+      return; 
+    }
+    
     if (!secondaryPolyline || secondaryPolyline.trim() === '') {
       console.log('No secondary polyline provided, clearing coordinates');
       setSecondaryCoordinates([]);
@@ -26,6 +78,7 @@ export function usePolylineComparison() {
     }
 
     try {
+      console.log('Decoding secondary polyline:', secondaryPolyline.substring(0, 20) + '...');
       const decodedCoordinates = decodePolyline(secondaryPolyline);
 
       if (
@@ -91,6 +144,7 @@ export function usePolylineComparison() {
     secondaryPolyline,
     setSecondaryPolyline,
     secondaryCoordinates,
+    setSecondaryCoordinates,
     comparisonType,
     handleComparisonTypeChange,
     overlayOpacity,

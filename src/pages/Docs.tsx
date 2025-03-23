@@ -14,7 +14,7 @@ import {
 const Docs = () => {
   return (
     <div className="mx-auto flex h-screen max-w-full flex-col p-2 md:p-3">
-      <Header />
+      <Header shareableState={{}} />
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="panel animate-fade-in md:col-span-3">
