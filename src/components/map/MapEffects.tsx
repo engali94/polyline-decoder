@@ -26,6 +26,7 @@ interface MapEffectsProps {
   secondaryLineWidth: number;
   primaryLineDash: number[];
   secondaryLineDash: number[];
+  secondMapReady: boolean;
 }
 
 const MapEffects = (props: MapEffectsProps) => {
@@ -41,6 +42,7 @@ const MapEffects = (props: MapEffectsProps) => {
     showDivergence,
     showIntersections,
     splitViewActive,
+    secondMapReady,
     primaryColor,
     secondaryColor,
     primaryLineWidth,
@@ -107,6 +109,7 @@ const MapEffects = (props: MapEffectsProps) => {
     splitViewActive,
     comparisonMode,
     validSecondaryCoords,
+    secondMapReady,
     color: secondaryColor,
     lineWidth: secondaryLineWidth,
     lineDash: secondaryLineDash,

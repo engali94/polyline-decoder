@@ -81,13 +81,9 @@ export function usePolylineComparison(options: PolylineComparisonOptions = {}) {
       console.log('Decoding secondary polyline:', secondaryPolyline.substring(0, 20) + '...');
       const decodedCoordinates = decodePolyline(secondaryPolyline);
 
-      if (
-        !decodedCoordinates ||
-        !Array.isArray(decodedCoordinates) ||
-        decodedCoordinates.length < 2
-      ) {
-        console.warn('Invalid secondary polyline: not enough coordinates');
-        toast.error('Invalid polyline format - needs at least 2 points');
+      // Accept any polyline that returns at least one coordinate
+      if (!decodedCoordinates || !Array.isArray(decodedCoordinates) || decodedCoordinates.length === 0) {
+        console.warn('Invalid secondary polyline: no coordinates decoded');
         return;
       }
 

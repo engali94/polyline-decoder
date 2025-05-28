@@ -53,14 +53,15 @@ const MapContainer: React.FC<MapProps> = ({
   }, [comparisonType]);
 
   useEffect(() => {
-    if (comparisonMode && localComparisonType === 'sideBySide') {
+    // Always activate split view when side-by-side is selected
+    if (localComparisonType === 'sideBySide') {
       console.log('Activating split view for side-by-side comparison');
       setSplitViewActive(true);
     } else {
       console.log('Deactivating split view');
       setSplitViewActive(false);
     }
-  }, [comparisonMode, localComparisonType]);
+  }, [localComparisonType]);
 
   useEffect(() => {
     console.log('MapContainer props:', {

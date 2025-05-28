@@ -10,6 +10,7 @@ interface UseSideBySideViewProps {
   color?: string;
   lineWidth?: number;
   lineDash?: number[];
+  secondMapReady: boolean;
 }
 
 export const useSideBySideView = ({
@@ -18,6 +19,7 @@ export const useSideBySideView = ({
   splitViewActive,
   comparisonMode,
   validSecondaryCoords,
+  secondMapReady,
   color = '#10b981',
   lineWidth = 8,
   lineDash = [],
@@ -25,203 +27,141 @@ export const useSideBySideView = ({
   useEffect(() => {
     console.log('🔄 Side-by-side effect triggered:', {
       hasSecondMap: !!secondMap.current,
+      secondMapReady,
       splitViewActive,
       comparisonMode,
       secondaryCoordinatesLength: secondaryCoordinates?.length || 0,
-      hasCoords: secondaryCoordinates && secondaryCoordinates.length > 0,
+      validSecondaryCoordsFromProp: validSecondaryCoords,
       sampleCoords: JSON.stringify(secondaryCoordinates?.slice(0, 2) || []),
       color,
       lineWidth,
       lineDash,
     });
 
-    if (!secondMap.current) {
-      console.log('❌ No second map available');
+    if (!secondMapReady || !secondMap.current) {
+      console.log('❌ No second map instance available or not ready for side-by-side view.', { secondMapReady, hasMapRef: !!secondMap.current });
+      // If the map was previously ready and now isn't (e.g. secondMapReady became false),
+      // updateSecondMapFeatures will handle cleanup if called, but it might not be if we return here.
+      // However, MapRenderers should set secondMapReady to false when the map is removed,
+      // and if splitViewActive is also false, updateSecondMapFeatures called below will clean up.
+      // If splitViewActive is true but secondMapReady is false, we should prevent drawing.
       return;
     }
+    const mapInstance = secondMap.current;
 
-    if (!splitViewActive || !comparisonMode) {
-      console.log('❌ Split view or comparison mode not active');
-      return;
-    }
+    const updateSecondMapFeatures = () => {
+      console.log('🛠️ updateSecondMapFeatures called. Map instance available. SplitViewActive:', splitViewActive, 'ValidSecondaryCoords:', validSecondaryCoords);
 
-    if (!secondaryCoordinates || secondaryCoordinates.length < 2) {
-      console.log('❌ Secondary coordinates missing or insufficient');
-      return;
-    }
+      const layerId = 'second-polyline-layer';
+      const sourceId = 'second-polyline-source';
 
-    const addPolylinesToSecondMap = () => {
-      console.log(
-        '🗺️ Adding secondary polyline to second map:',
-        secondaryCoordinates.length,
-        'points',
-        JSON.stringify(secondaryCoordinates.slice(0, 2))
-      );
-
-      if (!secondMap.current) return;
-
-      // Clean up any existing layers on second map
-      try {
-        if (secondMap.current.getLayer('second-polyline-layer')) {
-          secondMap.current.removeLayer('second-polyline-layer');
+      const removeMapFeatures = () => {
+        try {
+          if (mapInstance.getLayer(layerId)) {
+            mapInstance.removeLayer(layerId);
+            console.log(`➖ Removed layer "${layerId}" from second map.`);
+          }
+          if (mapInstance.getSource(sourceId)) {
+            mapInstance.removeSource(sourceId);
+            console.log(`➖ Removed source "${sourceId}" from second map.`);
+          }
+        } catch (error) {
+          console.error('Error removing features from second map:', error);
         }
-        if (secondMap.current.getSource('second-polyline-source')) {
-          secondMap.current.removeSource('second-polyline-source');
-        }
-      } catch (error) {
-        console.error('Error cleaning up second map:', error);
+      };
+
+      if (!splitViewActive) {
+        console.log('ℹ️ Split view not active. Ensuring second map features are removed.');
+        removeMapFeatures();
+        return;
       }
 
+      if (!validSecondaryCoords || !secondaryCoordinates || secondaryCoordinates.length === 0) {
+        console.log('❌ Secondary coordinates not valid or empty. Ensuring second map features are removed.');
+        removeMapFeatures();
+        return;
+      }
+      
+      console.log(
+        '🗺️ Adding/updating secondary polyline on second map:',
+        secondaryCoordinates.length, 'points'
+      );
+      removeMapFeatures(); // Clean up before adding new ones
+
       try {
-        // Add the GeoJSON source for the secondary polyline
-        secondMap.current.addSource('second-polyline-source', {
+        mapInstance.addSource(sourceId, {
           type: 'geojson',
           data: {
             type: 'Feature',
             properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: secondaryCoordinates,
-            },
+            geometry: { type: 'LineString', coordinates: secondaryCoordinates },
           },
         });
-        console.log('✅ Added polyline source to second map');
+        console.log(`✅ Added source "${sourceId}" to second map.`);
 
-        // Add the line layer for the secondary polyline
-        secondMap.current.addLayer({
-          id: 'second-polyline-layer',
+        mapInstance.addLayer({
+          id: layerId,
           type: 'line',
-          source: 'second-polyline-source',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round',
-          },
-          paint: {
-            'line-color': color,
-            'line-width': lineWidth,
-            'line-opacity': 1,
-            ...(lineDash.length > 0 ? { 'line-dasharray': lineDash } : {}),
+          source: sourceId,
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 
+            'line-color': color, 
+            'line-width': lineWidth, 
+            ...(lineDash && lineDash.length > 0 && { 'line-dasharray': lineDash }) 
           },
         });
-        console.log('✅ Added polyline layer to second map');
+        console.log(`✅ Added layer "${layerId}" to second map.`);
 
-        if (secondaryCoordinates.length > 0) {
-          new maplibregl.Marker({ color }) 
-            .setLngLat(secondaryCoordinates[0])
-            .addTo(secondMap.current);
-
-          new maplibregl.Marker({ color: '#ef4444' })
-            .setLngLat(secondaryCoordinates[secondaryCoordinates.length - 1])
-            .addTo(secondMap.current);
-
-          console.log(
-            '✅ Added markers at:',
-            secondaryCoordinates[0],
-            'and',
-            secondaryCoordinates[secondaryCoordinates.length - 1]
-          );
+        const bounds = secondaryCoordinates.reduce(
+          (b, coord) => b.extend(coord as maplibregl.LngLatLike),
+          new maplibregl.LngLatBounds(
+            secondaryCoordinates[0] as maplibregl.LngLatLike,
+            secondaryCoordinates[0] as maplibregl.LngLatLike
+          )
+        );
+        if (!bounds.isEmpty()) {
+          console.log('✈️ Fitting bounds on second map:', bounds.toArray());
+          mapInstance.fitBounds(bounds, { padding: 80, duration: 1000, maxZoom: 18 });
         }
-
-        try {
-          const bounds = new maplibregl.LngLatBounds();
-          secondaryCoordinates.forEach(coord => bounds.extend(coord as [number, number]));
-          
-          if (!bounds.isEmpty()) {
-            console.log('✅ Fitting second map to secondary polyline bounds - independent of primary map');
-            secondMap.current.fitBounds(bounds, { 
-              padding: 50, 
-              duration: 1000,
-              maxZoom: 15  // Don't zoom in too far
-            });
-          }
-        } catch (e) {
-          console.error('Error fitting map to bounds:', e);
-        }
-
-        console.log('✅ Successfully added secondary polyline to second map');
       } catch (error) {
-        console.error('Error adding secondary polyline to second map:', error);
+        console.error('Error adding source/layer or fitting bounds on second map:', error);
       }
     };
 
-    const ensureMapLoaded = () => {
-      if (!secondMap.current) return;
+    // Since this effect runs when secondMapReady becomes true (or other relevant props change),
+    // and secondMapReady is set after the map's 'load' event in MapRenderers,
+    // we can assume the map is ready for source/layer manipulation if secondMapReady is true.
+    console.log('✅ Second map is considered ready due to secondMapReady=true. Calling updateSecondMapFeatures.');
+    updateSecondMapFeatures();
 
-      if (secondMap.current.loaded()) {
-        console.log('✅ Second map already loaded, adding polyline now');
-        addPolylinesToSecondMap();
-      } else {
-        console.log('⏳ Second map loading, waiting for load event');
-
-        secondMap.current.once('load', () => {
-          console.log("Map 'load' event fired");
-          addPolylinesToSecondMap();
-        });
-
-        secondMap.current.once('idle', () => {
-          console.log("Map 'idle' event fired");
-          if (!secondMap.current?.getSource('second-polyline-source')) {
-            addPolylinesToSecondMap();
-          }
-        });
-
-        setTimeout(() => {
-          if (secondMap.current && !secondMap.current.getSource('second-polyline-source')) {
-            console.log('⚠️ Using fallback timeout to add polyline');
-            addPolylinesToSecondMap();
-          }
-        }, 1000);
+    const resizeObserver = new ResizeObserver(() => {
+      if (secondMap.current) { // Check ref directly in observer callback
+        console.log('📏 Resizing second map due to observer.');
+        secondMap.current.resize();
       }
-    };
+    });
 
-    const handleSecondMapReady = () => {
-      console.log('🎯 Received second-map-ready event');
-      if (secondMap.current && !secondMap.current.getSource('second-polyline-source')) {
-        addPolylinesToSecondMap();
+    // Ensure mapInstance.getCanvas() is available before trying to get parentNode
+    const canvas = mapInstance.getCanvas();
+    if (canvas) {
+      const parentNode = canvas.parentNode;
+      if (parentNode) {
+        resizeObserver.observe(parentNode as HTMLElement);
       }
-    };
-    window.addEventListener('second-map-ready', handleSecondMapReady);
-
-    setTimeout(ensureMapLoaded, 300);
-
-    setTimeout(() => {
-      if (secondMap.current && !secondMap.current.getSource('second-polyline-source')) {
-        console.log('🔄 Final attempt to add secondary polyline');
-        addPolylinesToSecondMap();
-      }
-    }, 2000);
-
+    } else {
+      console.warn('⚠️ Second map canvas not available for ResizeObserver.');
+    }
+    
     return () => {
-      if (secondMap.current) {
-        try {
-          window.removeEventListener('second-map-ready', handleSecondMapReady);
-
-          const markers = document.querySelectorAll('.maplibregl-marker');
-          markers.forEach(marker => {
-            if (marker.parentNode) {
-              marker.parentNode.removeChild(marker);
-            }
-          });
-
-          if (secondMap.current.getLayer('second-polyline-layer')) {
-            secondMap.current.removeLayer('second-polyline-layer');
-          }
-          if (secondMap.current.getSource('second-polyline-source')) {
-            secondMap.current.removeSource('second-polyline-source');
-          }
-        } catch (error) {
-          console.error('Error in cleanup of second map effect:', error);
-        }
-      }
+      console.log('🧹 useEffect cleanup for useSideBySideView.');
+      // No specific map 'load' listener to remove from this hook anymore
+      resizeObserver.disconnect();
+      console.log('🧹 Disconnected resize observer for second map.');
+      // Consider if features should be removed here if the component unmounts
+      // while splitViewActive is true. Current logic in updateSecondMapFeatures
+      // relies on splitViewActive being false for cleanup, or invalid coords.
+      // If the hook itself is unmounted (e.g. MapEffects unmounts),
+      // MapRenderers' cleanup for the second map should handle its removal.
     };
-  }, [
-    secondaryCoordinates,
-    splitViewActive,
-    secondMap,
-    comparisonMode,
-    validSecondaryCoords,
-    color,
-    lineWidth,
-    lineDash,
-  ]);
+  }, [secondMap, secondaryCoordinates, splitViewActive, comparisonMode, validSecondaryCoords, color, lineWidth, lineDash, secondMapReady]);
 };

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { Split } from 'lucide-react';
 import { StyleOption } from './StyleSelector';
@@ -52,6 +52,7 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const secondMapContainer = useRef<HTMLDivElement>(null);
   const mapSyncEventRefs = useRef<{ [key: string]: (e: any) => void }>({});
+  const [secondMapReady, setSecondMapReady] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -86,6 +87,7 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
         console.log('Removing second map as split view is deactivated');
         secondMap.current.remove();
         secondMap.current = null;
+        setSecondMapReady(false);
       }
       return;
     }
@@ -93,31 +95,55 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
     const currentStyle = styleOptions.find(style => style.id === currentStyleId);
     if (!currentStyle) return;
 
+    // If secondMap.current already exists, remove it before creating a new one
+    // This can happen if styleOptions or currentStyleId changes while splitViewActive is true
+    if (secondMap.current) {
+      console.log('Removing existing second map before reinitialization');
+      secondMap.current.remove();
+      secondMap.current = null;
+      setSecondMapReady(false);
+    }
+
     console.log('Creating second map for side-by-side view');
 
-    secondMap.current = new maplibregl.Map({
+    const newSecondMap = new maplibregl.Map({
       container: secondMapContainer.current,
       style: currentStyle.url,
       center: [-74.5, 40],
       zoom: 2,
       attributionControl: false,
     });
+    secondMap.current = newSecondMap;
 
-    secondMap.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+    newSecondMap.addControl(new maplibregl.NavigationControl(), 'top-right');
 
+    const handleSecondMapLoad = () => {
+      console.log('Second map "load" event fired. Setting secondMapReady to true.');
+      setSecondMapReady(true);
+      newSecondMap.resize(); // Ensure proper sizing after load
+    };
+
+    newSecondMap.on('load', handleSecondMapLoad);
+
+    // Initial resize attempt, might be useful before 'load'
     setTimeout(() => {
-      if (secondMap.current) {
-        secondMap.current.resize();
+      if (newSecondMap && !newSecondMap.getCanvas().clientWidth) { // Check if canvas has width
+        console.log('Attempting initial resize of second map.');
+        newSecondMap.resize();
       }
     }, 100);
 
     return () => {
-      if (secondMap.current) {
+      console.log('Cleaning up second map effect.');
+      newSecondMap.off('load', handleSecondMapLoad); // Remove listener
+      if (secondMap.current) { // Check if it's the same instance we are cleaning up
+        console.log('Removing second map instance during cleanup.');
         secondMap.current.remove();
         secondMap.current = null;
       }
+      setSecondMapReady(false); // Reset ready state on cleanup
     };
-  }, [splitViewActive, styleOptions.length, map, secondMap, currentStyleId]);
+  }, [splitViewActive, styleOptions, currentStyleId, secondMap]);
 
   useEffect(() => {
     if (!map.current || !secondMap.current) return;
@@ -181,6 +207,7 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
         showDivergence={showDivergence}
         showIntersections={showIntersections}
         splitViewActive={splitViewActive}
+        secondMapReady={secondMapReady}
         primaryColor={primaryColor}
         secondaryColor={secondaryColor}
         primaryLineWidth={primaryLineWidth}
