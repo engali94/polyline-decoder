@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Trash2, Copy, Sparkles, ArrowDownUp, Upload, Download } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Textarea } from './ui/textarea';
-import { Input } from './ui/input';
+import { decodePolyline } from '../utils/polylineDecoder';
+import { cn } from '../lib/utils';
 import { Switch } from './ui/switch';
+import { Info } from 'lucide-react';
 
 interface PolylineInputProps {
   value: string;
@@ -28,7 +29,6 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
   isEncoding = false,
   onCoordinatesInput,
 }) => {
-  const [isFocused, setIsFocused] = useState(false);
   const [coordinatesText, setCoordinatesText] = useState('');
 
   const handlePaste = async () => {
@@ -50,20 +50,28 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
     }
   };
 
+  const primaryCoordinates = value ? decodePolyline(value, precision) : [];
+
+  const isEmpty = mode === 'decode' ? !value : !coordinatesText;
+
   return (
-    <div
-      className={`panel transition-all duration-300 ${isFocused ? 'ring-1 ring-primary/20' : ''}`}
-    >
-      <div className="mb-2 flex items-center justify-between">
+    <div className="panel">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
             {mode === 'decode' ? 'Decode' : 'Encode'}
           </span>
+          <div className="hidden items-center text-xs text-muted-foreground sm:flex">
+            <Info className="mr-1 h-3 w-3" />
+            <span>{mode === 'decode' ? 'Polyline → Coordinates' : 'Coordinates → Polyline'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
           {onModeChange && (
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-muted-foreground">
-                {mode === 'decode' ? 'Polyline → Coordinates' : 'Coordinates → Polyline'}
-              </span>
               <div className="flex items-center space-x-1">
                 <Switch checked={mode === 'encode'} onCheckedChange={onModeChange} />
                 <ArrowDownUp className="h-3 w-3 text-muted-foreground" />
@@ -107,22 +115,30 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
         <textarea
           value={value}
           onChange={e => onChange(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
           placeholder="Paste your encoded polyline here..."
           className="h-24 w-full resize-none border-0 bg-transparent p-0 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
         />
       ) : (
-        <div>
-          <textarea
-            value={coordinatesText}
-            onChange={e => setCoordinatesText(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder="Paste your coordinates here (format: longitude,latitude or one coordinate per line)..."
-            className="h-24 w-full resize-none border-0 bg-transparent p-0 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
-          />
-          <div className="mt-2 flex justify-end">
+        <textarea
+          value={coordinatesText}
+          onChange={e => setCoordinatesText(e.target.value)}
+          placeholder="Paste your coordinates here (format: longitude,latitude or one coordinate per line)..."
+          className="h-24 w-full resize-none border-0 bg-transparent p-0 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+        />
+      )}
+
+      <div className="mt-2 flex items-center justify-between">
+        <div className="text-xs text-muted-foreground">
+          {mode === 'decode'
+            ? value
+              ? `${value.length} characters, ${primaryCoordinates.length} points`
+              : 'No polyline data'
+            : value
+              ? `Encoded polyline (${value.length} chars)`
+              : 'No encoded result yet'}
+        </div>
+        <div className="flex space-x-1">
+          {mode === 'encode' ? (
             <button
               onClick={handleCoordinatesSubmit}
               disabled={!coordinatesText || isEncoding}
@@ -131,22 +147,8 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
               <Upload className="mr-1 h-3 w-3" />
               <span>{isEncoding ? 'Encoding...' : 'Encode'}</span>
             </button>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-2 flex items-center justify-between">
-        <div className="text-xs text-muted-foreground">
-          {mode === 'decode'
-            ? value
-              ? `${value.length} characters`
-              : 'No polyline data'
-            : value
-              ? `Encoded polyline (${value.length} chars)`
-              : 'No encoded result yet'}
-        </div>
-        <div className="flex space-x-1">
-          {value && (
+          ) : null}
+          {value ? (
             <button
               onClick={() => navigator.clipboard.writeText(value)}
               className="flex items-center space-x-1 rounded-md bg-secondary p-1.5 text-xs transition-colors hover:bg-secondary/80"
@@ -154,7 +156,7 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
               <Copy className="mr-1 h-3 w-3" />
               <span>Copy</span>
             </button>
-          )}
+          ) : null}
           <button
             onClick={() => {
               if (mode === 'decode') {
@@ -167,8 +169,8 @@ const PolylineInput: React.FC<PolylineInputProps> = ({
             }}
             className="flex items-center space-x-1 rounded-md bg-primary/10 p-1.5 text-xs text-primary transition-colors hover:bg-primary/20"
           >
-            <Sparkles className="mr-1 h-3 w-3" />
-            <span>Sample</span>
+            <Sparkles className={cn('h-3 w-3', isEmpty && 'mr-1')} />
+            {isEmpty ? <span>Sample</span> : null}
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Trash2, Copy, Sparkles } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
@@ -17,8 +17,6 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
   precision = 5,
   onPrecisionChange,
 }) => {
-  const [isFocused, setIsFocused] = useState(false);
-
   const handleClear = () => {
     setSecondaryPolyline('');
   };
@@ -33,9 +31,7 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
   };
 
   return (
-    <div
-      className={`mb-3 mt-4 transition-all duration-300 ${isFocused ? 'ring-1 ring-primary/20' : ''}`}
-    >
+    <div className="mb-3 mt-4">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center space-x-1">
           <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -77,8 +73,6 @@ const SecondaryPolylineInput: React.FC<SecondaryPolylineInputProps> = ({
       <textarea
         value={secondaryPolyline}
         onChange={e => setSecondaryPolyline(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
         placeholder="Paste your secondary polyline here..."
         className="h-24 w-full resize-none border-0 bg-transparent p-0 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
       />
