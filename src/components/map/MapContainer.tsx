@@ -21,6 +21,7 @@ interface MapProps {
   secondaryLineWidth?: number;
   primaryLineDash?: number[];
   secondaryLineDash?: number[];
+  onCoordinatesChange?: (coords: [number, number][]) => void;
 }
 
 const MapContainer: React.FC<MapProps> = ({
@@ -38,6 +39,7 @@ const MapContainer: React.FC<MapProps> = ({
   secondaryLineWidth = 3,
   primaryLineDash = [],
   secondaryLineDash = [],
+  onCoordinatesChange,
 }) => {
   const map = useRef<maplibregl.Map | null>(null);
   const secondMap = useRef<maplibregl.Map | null>(null);
@@ -238,6 +240,7 @@ const MapContainer: React.FC<MapProps> = ({
         primaryLineDash={primaryLineDash}
         secondaryLineDash={secondaryLineDash}
         syncMaps={syncMaps}
+        onCoordinatesChange={onCoordinatesChange}
       />
     </div>
   );

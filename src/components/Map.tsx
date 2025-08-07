@@ -17,6 +17,7 @@ interface MapProps {
   secondaryLineWidth?: number;
   primaryLineDash?: number[];
   secondaryLineDash?: number[];
+  onCoordinatesChange?: (coords: [number, number][]) => void;
 }
 
 const Map: React.FC<MapProps> = ({
@@ -34,6 +35,7 @@ const Map: React.FC<MapProps> = ({
   secondaryLineWidth = 3,
   primaryLineDash = [],
   secondaryLineDash = [],
+  onCoordinatesChange,
 }) => {
   console.log('Map component props:', {
     coordinatesCount: coordinates.length,
@@ -63,6 +65,7 @@ const Map: React.FC<MapProps> = ({
       secondaryLineWidth={secondaryLineWidth}
       primaryLineDash={primaryLineDash}
       secondaryLineDash={secondaryLineDash}
+      onCoordinatesChange={onCoordinatesChange}
     />
   );
 };

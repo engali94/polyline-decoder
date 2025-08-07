@@ -3,7 +3,8 @@ import * as maplibregl from 'maplibre-gl';
 import { Split } from 'lucide-react';
 import { StyleOption } from './StyleSelector';
 import MapEffects from './MapEffects';
-
+import EditControls from './EditControls';
+import { useEditorBridge } from './effects/useEditorBridge';
 interface MapRenderersProps {
   coordinates: [number, number][];
   secondaryCoordinates: [number, number][];
@@ -25,6 +26,7 @@ interface MapRenderersProps {
   primaryLineDash: number[];
   secondaryLineDash: number[];
   syncMaps?: boolean;
+  onCoordinatesChange?: (coords: [number, number][]) => void;
 }
 
 const MapRenderers: React.FC<MapRenderersProps> = ({
@@ -48,11 +50,14 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
   primaryLineDash,
   secondaryLineDash,
   syncMaps = false,
+  onCoordinatesChange,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const secondMapContainer = useRef<HTMLDivElement>(null);
   const mapSyncEventRefs = useRef<{ [key: string]: (e: any) => void }>({});
   const [secondMapReady, setSecondMapReady] = useState(false);
+  const [editEnabled, setEditEnabled] = useState(false);
+  const [snapEnabled, setSnapEnabled] = useState(true);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -193,6 +198,16 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
     return cleanupSyncEvents;
   }, [syncMaps, map.current, secondMap.current]);
 
+  const editor = useEditorBridge({
+    map,
+    coordinates,
+    onCoordinatesChange,
+    enabled: editEnabled,
+    snap: snapEnabled,
+    additionalSnapPoints: secondaryCoordinates,
+    setEnabled: setEditEnabled,
+  });
+
   return (
     <>
       <MapEffects
@@ -233,6 +248,19 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
           <div className="animate-pulse text-primary">Loading map data...</div>
         </div>
+      )}
+
+      {onCoordinatesChange && (
+        <EditControls
+          enabled={editEnabled}
+          setEnabled={setEditEnabled}
+          snap={snapEnabled}
+          setSnap={setSnapEnabled}
+          undo={editor.undo}
+          redo={editor.redo}
+          canUndo={editor.canUndo}
+          canRedo={editor.canRedo}
+        />
       )}
     </>
   );
