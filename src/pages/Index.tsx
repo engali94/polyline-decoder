@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import Header from '../components/Header';
@@ -13,7 +13,7 @@ import { usePolyline } from '../hooks/usePolyline';
 import { usePolylineComparison } from '../hooks/usePolylineComparison';
 import { ShareableState, getStateFromUrl, decodeStateFromUrl } from '../utils/urlState';
 import { toast } from 'sonner';
-import { decodePolyline, calculateDistance } from '../utils/polylineDecoder';
+import { decodePolyline, calculateDistance, encodePolyline } from '../utils/polylineDecoder';
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -177,6 +177,15 @@ const Index = () => {
   const [secondaryLineWidth, setSecondaryLineWidth] = useState(urlState?.secondaryLineWidth || 3);
   const [primaryLineDash, setPrimaryLineDash] = useState<number[]>(urlState?.primaryLineDash || []);
   const [secondaryLineDash, setSecondaryLineDash] = useState<number[]>(urlState?.secondaryLineDash || []);
+  const prevCoordinatesLengthRef = useRef(0);
+
+  useEffect(() => {
+    if (coordinates.length > 0 && coordinates.length !== prevCoordinatesLengthRef.current) {
+      prevCoordinatesLengthRef.current = coordinates.length;
+      const encoded = encodePolyline(coordinates, precision);
+      setPolyline(encoded);
+    }
+  }, [coordinates, precision, setPolyline]);
 
   useEffect(() => {
     if (urlState) {
