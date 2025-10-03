@@ -254,6 +254,7 @@ const Index = () => {
             secondaryLineWidth={secondaryLineWidth}
             primaryLineDash={primaryLineDash}
             secondaryLineDash={secondaryLineDash}
+            onCoordinatesChange={setCoordinates}
           />
         </div>
 
