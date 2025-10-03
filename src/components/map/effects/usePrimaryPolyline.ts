@@ -10,6 +10,7 @@ interface UsePrimaryPolylineProps {
   color?: string;
   lineWidth?: number;
   lineDash?: number[];
+  editMode?: boolean;
 }
 
 export const usePrimaryPolyline = ({
@@ -20,12 +21,13 @@ export const usePrimaryPolyline = ({
   color = '#3b82f6',
   lineWidth = 3,
   lineDash = [],
+  editMode = false,
 }: UsePrimaryPolylineProps) => {
   useEffect(() => {
     if (!map.current || isLoading || !validCoordinates) return;
 
     const onMapLoad = () => {
-      addPrimaryPolyline(map.current!, coordinates, isLoading, color, lineWidth, lineDash);
+      addPrimaryPolyline(map.current!, coordinates, isLoading, color, lineWidth, lineDash, editMode);
     };
 
     if (map.current.loaded()) {
@@ -33,5 +35,5 @@ export const usePrimaryPolyline = ({
     } else {
       map.current.once('load', onMapLoad);
     }
-  }, [coordinates, isLoading, map, validCoordinates, color, lineWidth, lineDash]);
+  }, [coordinates, isLoading, map, validCoordinates, color, lineWidth, lineDash, editMode]);
 };

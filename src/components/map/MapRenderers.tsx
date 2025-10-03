@@ -229,6 +229,7 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
         secondaryLineWidth={secondaryLineWidth}
         primaryLineDash={primaryLineDash}
         secondaryLineDash={secondaryLineDash}
+        editMode={editEnabled}
       />
 
       <div className={`h-full w-full ${splitViewActive ? 'hidden md:block md:w-1/2 md:pr-1' : ''}`}>

@@ -6,7 +6,8 @@ export const addPrimaryPolyline = (
   isLoading: boolean,
   color: string = '#3b82f6',
   lineWidth: number = 4,
-  lineDash: number[] = []
+  lineDash: number[] = [],
+  skipAutoFit: boolean = false
 ): void => {
   if (isLoading || !coordinates.length) return;
 
@@ -18,7 +19,7 @@ export const addPrimaryPolyline = (
   if (!map.isStyleLoaded()) {
     console.log('🔄 Map style not loaded yet, waiting...');
     map.once('style.load', () => {
-      addPrimaryPolyline(map, coordinates, isLoading, color, lineWidth, lineDash);
+      addPrimaryPolyline(map, coordinates, isLoading, color, lineWidth, lineDash, skipAutoFit);
     });
     return;
   }
@@ -65,7 +66,7 @@ export const addPrimaryPolyline = (
       },
     });
 
-    if (coordinates.length > 0) {
+    if (coordinates.length > 0 && !skipAutoFit) {
       const isSaudiArabia = coordinates.some(
         ([lng, lat]) => lat >= 20 && lat <= 30 && lng >= 40 && lng <= 50
       );
@@ -75,7 +76,7 @@ export const addPrimaryPolyline = (
 
         map.jumpTo({
           center: coordinates[0],
-          zoom: 14, // Start with a closer zoom
+          zoom: 14,
         });
 
         const bounds = new maplibregl.LngLatBounds();

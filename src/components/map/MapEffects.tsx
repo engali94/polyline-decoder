@@ -27,6 +27,7 @@ interface MapEffectsProps {
   primaryLineDash: number[];
   secondaryLineDash: number[];
   secondMapReady: boolean;
+  editMode?: boolean;
 }
 
 const MapEffects = (props: MapEffectsProps) => {
@@ -49,6 +50,7 @@ const MapEffects = (props: MapEffectsProps) => {
     secondaryLineWidth,
     primaryLineDash,
     secondaryLineDash,
+    editMode = false,
   } = props;
 
   // Validate coordinates - simplify validation to boolean
@@ -83,6 +85,7 @@ const MapEffects = (props: MapEffectsProps) => {
     color: primaryColor,
     lineWidth: primaryLineWidth,
     lineDash: primaryLineDash,
+    editMode,
   });
 
   useSecondaryPolyline({
