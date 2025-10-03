@@ -151,7 +151,7 @@ export function usePolylineEditor({
     if (!map.current) return;
     if (!enabled) return;
 
-    const handleMapClick = (e: maplibregl.MapMouseEvent & maplibregl.EventData) => {
+    const handleMapClick = (e: maplibregl.MapMouseEvent) => {
       if (!map.current) return;
       const target = e.originalEvent?.target as HTMLElement | null;
       if (target && target.closest('.editor-controls')) return;

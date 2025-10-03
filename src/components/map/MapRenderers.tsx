@@ -260,6 +260,7 @@ const MapRenderers: React.FC<MapRenderersProps> = ({
           redo={editor.redo}
           canUndo={editor.canUndo}
           canRedo={editor.canRedo}
+          onClear={() => onCoordinatesChange([])}
         />
       )}
     </>

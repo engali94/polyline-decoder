@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, Magnet, RotateCcw, RotateCw } from 'lucide-react';
+import { Pencil, Magnet, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
 
 interface EditControlsProps {
   enabled: boolean;
@@ -10,6 +10,7 @@ interface EditControlsProps {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  onClear?: () => void;
 }
 
 const EditControls: React.FC<EditControlsProps> = ({
@@ -21,6 +22,7 @@ const EditControls: React.FC<EditControlsProps> = ({
   redo,
   canUndo,
   canRedo,
+  onClear,
 }) => {
   return (
     <div className="editor-controls glass absolute left-4 top-20 z-10 flex space-x-2 rounded-lg p-2">
@@ -54,6 +56,15 @@ const EditControls: React.FC<EditControlsProps> = ({
       >
         <RotateCw className="h-4 w-4" />
       </button>
+      {onClear && (
+        <button
+          onClick={onClear}
+          className="rounded-md p-1.5 bg-destructive/70 text-destructive-foreground hover:bg-destructive/90 transition-colors"
+          title="Clear all points"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 };
