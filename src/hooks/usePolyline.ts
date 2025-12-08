@@ -20,12 +20,6 @@ export function usePolyline(options: UsePolylineOptions | string = '') {
     initialPrecision = 5
   } = opts;
   
-  console.log('usePolyline init with:', { 
-    hasInitialPolyline: !!initialPolyline, 
-    initialCoordinatesCount: initialCoordinates.length,
-    initialDistance, 
-    initialPrecision 
-  });
   
   const [polyline, setPolyline] = useState(initialPolyline);
   const [coordinates, setCoordinates] = useState<[number, number][]>(initialCoordinates);
@@ -38,48 +32,50 @@ export function usePolyline(options: UsePolylineOptions | string = '') {
 
   useEffect(() => {
     if (initialLoadRef.current && initialPolyline && initialCoordinates.length === 0) {
-      console.log('Decoding initial polyline on mount because no coordinates were provided');
       initialLoadRef.current = false;
-      
       try {
         const decodedCoordinates = decodePolyline(initialPolyline, precision);
         setCoordinates(decodedCoordinates);
         setDistance(calculateDistance(decodedCoordinates));
-        console.log('Initial polyline decoded with', decodedCoordinates.length, 'coordinates');
       } catch (error) {
         console.error('Error decoding initial polyline:', error);
       }
     } else if (initialLoadRef.current) {
       initialLoadRef.current = false;
-      if (initialCoordinates.length > 0) {
-        console.log('Using pre-decoded coordinates:', initialCoordinates.length);
-      }
     }
   }, [initialPolyline, precision, initialCoordinates]);
+
+  const prevPolylineRef = useRef<string>('');
+  const prevDecodePrecisionRef = useRef<number>(precision);
 
   useEffect(() => {
     if (initialLoadRef.current || !polyline || mode !== 'decode') {
       return;
     }
 
+    const polylineChanged = prevPolylineRef.current !== polyline;
+    const precisionChanged = prevDecodePrecisionRef.current !== precision;
+
+    if (!polylineChanged && !precisionChanged) {
+      return;
+    }
+
+    prevPolylineRef.current = polyline;
+    prevDecodePrecisionRef.current = precision;
+
     setIsDecoding(true);
 
     const timer = setTimeout(() => {
       try {
-        console.log('Decoding polyline:', polyline.substring(0, 20) + '...');
         const decodedCoordinates = decodePolyline(polyline, precision);
         setCoordinates(decodedCoordinates);
         setDistance(calculateDistance(decodedCoordinates));
-
-        if (decodedCoordinates.length > 0) {
-          console.log('First coordinate:', decodedCoordinates[0]);
-        }
       } catch (error) {
         console.error('Error decoding polyline:', error);
       } finally {
         setIsDecoding(false);
       }
-    }, 300);
+    }, 150);
 
     return () => clearTimeout(timer);
   }, [polyline, precision, mode]);
@@ -95,8 +91,6 @@ export function usePolyline(options: UsePolylineOptions | string = '') {
       try {
         const encodedPolyline = encodePolyline(coordinates, precision);
         setPolyline(encodedPolyline);
-
-        console.log('Encoded polyline:', encodedPolyline);
       } catch (error) {
         console.error('Error encoding coordinates:', error);
       } finally {
