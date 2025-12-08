@@ -62,15 +62,12 @@ const Index = () => {
     setPolyline,
     coordinates,
     setCoordinates,
-    setCoordinatesFromText,
     distance,
     isDecoding,
     isEncoding,
     handleClear,
     precision,
     setPrecision,
-    mode,
-    toggleMode,
   } = usePolyline(initialHookParams);
 
   const {
@@ -290,10 +287,6 @@ const Index = () => {
             onClear={handleClear}
             precision={precision}
             onPrecisionChange={setPrecision}
-            mode={mode}
-            onModeChange={toggleMode}
-            isEncoding={isEncoding}
-            onCoordinatesInput={setCoordinatesFromText}
           />
 
           <PolylineComparison
