@@ -70,6 +70,10 @@ const Index = () => {
     setPrecision,
   } = usePolyline(initialHookParams);
 
+  const handleCoordinatesImport = (coords: [number, number][]) => {
+    setCoordinates(coords);
+  };
+
   const {
     comparisonMode,
     setComparisonMode,
@@ -287,6 +291,7 @@ const Index = () => {
             onClear={handleClear}
             precision={precision}
             onPrecisionChange={setPrecision}
+            onCoordinatesImport={handleCoordinatesImport}
           />
 
           <PolylineComparison
