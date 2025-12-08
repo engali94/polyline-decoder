@@ -177,13 +177,29 @@ const Index = () => {
   const [secondaryLineWidth, setSecondaryLineWidth] = useState(urlState?.secondaryLineWidth || 3);
   const [primaryLineDash, setPrimaryLineDash] = useState<number[]>(urlState?.primaryLineDash || []);
   const [secondaryLineDash, setSecondaryLineDash] = useState<number[]>(urlState?.secondaryLineDash || []);
-  const prevCoordinatesLengthRef = useRef(0);
+  const prevCoordinatesRef = useRef<string>('');
+  const prevPrecisionRef = useRef<number>(precision);
+  const isInternalUpdate = useRef(false);
 
   useEffect(() => {
-    if (coordinates.length > 0 && coordinates.length !== prevCoordinatesLengthRef.current) {
-      prevCoordinatesLengthRef.current = coordinates.length;
+    if (coordinates.length === 0) {
+      prevCoordinatesRef.current = '';
+      return;
+    }
+
+    const coordsKey = JSON.stringify(coordinates);
+    const precisionChanged = prevPrecisionRef.current !== precision;
+    const coordsChanged = prevCoordinatesRef.current !== coordsKey;
+
+    if (coordsChanged || precisionChanged) {
+      prevCoordinatesRef.current = coordsKey;
+      prevPrecisionRef.current = precision;
+      isInternalUpdate.current = true;
       const encoded = encodePolyline(coordinates, precision);
       setPolyline(encoded);
+      setTimeout(() => {
+        isInternalUpdate.current = false;
+      }, 100);
     }
   }, [coordinates, precision, setPolyline]);
 
