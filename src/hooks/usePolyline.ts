@@ -27,7 +27,6 @@ export function usePolyline(options: UsePolylineOptions | string = '') {
   const [isDecoding, setIsDecoding] = useState(false);
   const [isEncoding, setIsEncoding] = useState(false);
   const [precision, setPrecision] = useState(initialPrecision);
-  const [mode, setMode] = useState<'decode' | 'encode'>('decode');
   const initialLoadRef = useRef(true);
 
   useEffect(() => {
@@ -49,7 +48,7 @@ export function usePolyline(options: UsePolylineOptions | string = '') {
   const prevDecodePrecisionRef = useRef<number>(precision);
 
   useEffect(() => {
-    if (initialLoadRef.current || !polyline || mode !== 'decode') {
+    if (initialLoadRef.current || !polyline) {
       return;
     }
 
@@ -78,28 +77,8 @@ export function usePolyline(options: UsePolylineOptions | string = '') {
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [polyline, precision, mode]);
+  }, [polyline, precision]);
 
-  useEffect(() => {
-    if (coordinates.length === 0 || mode !== 'encode') {
-      return;
-    }
-
-    setIsEncoding(true);
-
-    const timer = setTimeout(() => {
-      try {
-        const encodedPolyline = encodePolyline(coordinates, precision);
-        setPolyline(encodedPolyline);
-      } catch (error) {
-        console.error('Error encoding coordinates:', error);
-      } finally {
-        setIsEncoding(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [coordinates, precision, mode]);
 
   const handleClear = () => {
     setPolyline('');
@@ -134,19 +113,6 @@ export function usePolyline(options: UsePolylineOptions | string = '') {
     const parsed = parseCoordinates(text);
     setCoordinates(parsed);
     setDistance(calculateDistance(parsed));
-    setMode('encode');
-  };
-
-  const toggleMode = () => {
-    setMode(prevMode => {
-      const newMode = prevMode === 'decode' ? 'encode' : 'decode';
-
-      setPolyline('');
-      setCoordinates([]);
-      setDistance(0);
-
-      return newMode;
-    });
   };
 
   return {
@@ -161,7 +127,5 @@ export function usePolyline(options: UsePolylineOptions | string = '') {
     handleClear,
     precision,
     setPrecision,
-    mode,
-    toggleMode,
   };
 }
