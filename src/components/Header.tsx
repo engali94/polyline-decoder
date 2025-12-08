@@ -1,5 +1,5 @@
 import React from 'react';
-import { Github, Map, Info, BookOpen } from 'lucide-react';
+import { Github, Map, Info, BookOpen, Coffee } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ShareButton from './ShareButton';
 import { ShareableState } from '../utils/urlState';
@@ -45,6 +45,15 @@ const Header: React.FC<HeaderProps> = ({ shareableState }) => {
             Docs
           </Link>
           {shareableState && <ShareButton state={shareableState} />}
+          <a
+            href="https://buymeacoffee.com/w62gdfsvyy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-md bg-[#FFDD00] px-3 py-1.5 text-sm font-medium text-[#000000] transition-all hover:bg-[#FFDD00]/90 hover:shadow-md"
+          >
+            <Coffee className="h-4 w-4" />
+            Buy me a coffee
+          </a>
         </nav>
         <span className="hidden text-xs text-muted-foreground md:inline-block">
           Free online tool for Google polyline format
